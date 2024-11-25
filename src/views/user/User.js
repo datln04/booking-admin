@@ -5,7 +5,7 @@ import moment from 'moment';
 import { cilDelete, cilPencil, cilTrash, cilUserFollow } from '@coreui/icons';
 import './User.scss'; // Import the SCSS file
 import { createData, deleteData, fetchData, updateData } from '../../service/service';
-import UserRole from '../../util/Enum';
+import { UserRole } from '../../util/Enum';
 import { uploadImage } from '../../util/Util'; // Import the uploadImage function
 import ImageUpload from '../../util/ImageUpload';
 import DeleteConfirmation from '../../util/DeleteConfirmation';
