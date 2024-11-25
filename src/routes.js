@@ -1,7 +1,7 @@
 import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
-const User = React.lazy(() => import('./views/User/User'))
+const User = React.lazy(() => import('./views/user/User'))
 const Province = React.lazy(() => import('./components/province/Province'))
 const District = React.lazy(() => import('./components/district/District'))
 const Commune = React.lazy(() => import('./components/commune/Commune'))
