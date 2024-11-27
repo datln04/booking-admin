@@ -89,10 +89,32 @@ const _nav = [
     ]
   },
   {
-    component: CNavItem,
+    component: CNavGroup,
     name: 'Experiences Management',
     to: '/experiences-management',
     icon: <CIcon icon={cilMap} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Experience Services',
+        to: '/experience-services',
+      },
+      {
+        component: CNavItem,
+        name: 'Experience Addditional Restriction Setting',
+        to: '/experience-additional-restriction-setting',
+      },
+      {
+        component: CNavItem,
+        name: 'Additional Informations',
+        to: '/additional-informations',
+      },
+      {
+        component: CNavItem,
+        name: 'Restriction Informations',
+        to: '/restriction-informations',
+      },
+    ]
   },
   {
     component: CNavGroup,
@@ -104,6 +126,11 @@ const _nav = [
         component: CNavItem,
         name: 'Restaurants',
         to: '/restaurants',
+      },
+      {
+        component: CNavItem,
+        name: 'Restaurant Dietarie Options',
+        to: '/restaurant-dietaries',
       },
       {
         component: CNavItem,

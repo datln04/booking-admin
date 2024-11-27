@@ -9,9 +9,14 @@ const TransportService = React.lazy(() => import('./components/Transport/Transpo
 const Dietary = React.lazy(() => import('./components/dietary/Dietary'))
 const Cusine = React.lazy(() => import('./components/cusine/Cusine'))
 const Restaurant = React.lazy(() => import('./components/restaurant/Restaurant'))
+const RestaurantDietaries = React.lazy(() => import('./components/restaurant/RestaurantDietaries'))
 const Feature = React.lazy(() => import('./components/feature/Feature'))
 const TransportFeatures = React.lazy(() => import('./components/transport-feature/TransportFeature'))
 const Room = React.lazy(() => import('./components/room/Room'))
+const ExperienceService = React.lazy(() => import('./components/experience/ExperienceService'))
+const ExperienceSetting = React.lazy(() => import('./components/experience/ExperienceSetting'))
+const RestrictionInformation = React.lazy(() => import('./components/restriction/RestrictionInformation'))
+const AdditionalInformation = React.lazy(() => import('./components/additional/AdditionalInformation'))
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -29,9 +34,14 @@ const routes = [
   { path: '/transport-feature', name: 'Transport Features', element: TransportFeatures },
   // restaurant
   { path: '/restaurants', name: 'Restaurants', element: Restaurant },
+  { path: '/restaurant-dietaries', name: 'Restaurant Dietarie Options', element: RestaurantDietaries },
   { path: '/dietaries', name: 'Dietaries', element: Dietary },
   { path: '/cusines', name: 'Cusines', element: Cusine },
-  
+  // experience
+  { path: '/experience-services', name: 'Experience Services', element: ExperienceService },
+  { path: '/experience-additional-restriction-setting', name: 'Experience Addditional Restriction Setting', element: ExperienceSetting },
+  { path: '/restriction-informations', name: 'Restriction Informations', element: RestrictionInformation },
+  { path: '/additional-informations', name: 'Additional Informations', element: AdditionalInformation },
 ]
 
 export default routes
