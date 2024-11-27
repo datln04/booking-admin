@@ -200,7 +200,7 @@ const RestaurantDietaries = () => {
                                         <tr key={dietary.id}>
                                             <td>{dietary.id}</td>
                                             <td>{restaurants.find(r => r.id === dietary.restaurantId)?.name}</td>
-                                            <td>{dietary.dietaryIds.map(id => dietaries.find(d => d.id === id)?.optionName).join(', ')}</td>
+                                            <td>{dietary?.dietaryIds?.map(id => dietaries.find(d => d.id === id)?.optionName).join(', ')}</td>
                                             <td>
                                                 <CBadge color={getStatusBadge(dietary.isDeleted)}>
                                                     {getStatusText(dietary.isDeleted)}
