@@ -31,3 +31,13 @@ export const fetchFilteredData = async (prefix, filter) => {
   });
   return data;
 }
+
+export const fetchFilteredDataWithoutFilter = async (prefix, filter) => {
+  const { data } = await axios.post(`${API_URL}${prefix}`, filter, {
+    headers: {
+      'Content-Type': 'application/json',
+      'accept': '*/*'
+    }
+  });
+  return data;
+}

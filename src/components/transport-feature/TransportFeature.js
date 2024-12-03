@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CBadge, CModal, CModalHeader, CModalBody, CModalFooter, CForm, CFormLabel, CFormInput, CFormCheck, CFormSelect, CToast, CToastBody, CToastHeader, CToaster, CSpinner } from '@coreui/react';
+import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CBadge, CModal, CModalHeader, CModalBody, CModalFooter, CForm, CFormLabel, CFormCheck, CFormSelect, CToast, CToastBody, CToastHeader, CToaster, CSpinner } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
 import { cilPencil, cilTrash, cilUserFollow } from '@coreui/icons';
-import { createData, fetchData, updateData, deleteData, fetchFilteredData } from '../../service/service';
+import Select from 'react-select';
+import { createData, fetchData, updateData, deleteData } from '../../service/service';
 import DeleteConfirmation from '../../util/DeleteConfirmation';
 
 const getStatusBadge = (isDeleted) => {
@@ -13,18 +14,18 @@ const getStatusText = (isDeleted) => {
     return isDeleted ? 'Deleted' : 'Active';
 };
 
-const TransportFeature = () => {
-    const [transportFeatures, setTransportFeatures] = useState([]);
-    const [features, setFeatures] = useState([]);
+const TransportFeatures = () => {
     const [transportServices, setTransportServices] = useState([]);
+    const [features, setFeatures] = useState([]);
+    const [transportFeatures, setTransportFeatures] = useState([]);
     const [showPopup, setShowPopup] = useState(false);
-    const [editingTransportFeature, setEditingTransportFeature] = useState(null);
+    const [editingFeature, setEditingFeature] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [transportFeatureToDelete, setTransportFeatureToDelete] = useState(null);
-    const [newTransportFeature, setNewTransportFeature] = useState({
+    const [featureToDelete, setFeatureToDelete] = useState(null);
+    const [newFeature, setNewFeature] = useState({
         id: 0,
-        featureId: 0,
         transportServiceId: 0,
+        featureIds: [],
         isDeleted: false
     });
     const [toasts, setToasts] = useState([]);
@@ -33,63 +34,60 @@ const TransportFeature = () => {
     const [fetching, setFetching] = useState(false);
 
     useEffect(() => {
-        fetchTransportFeatures();
-        fetchFeatures();
         fetchTransportServices();
+        fetchFeatures();
+        fetchTransportFeatures();
     }, [refresh]);
-
-    const fetchTransportFeatures = async () => {
-        setFetching(true);
-        const filter = {
-            filters: [],
-            includes: ["Feature", "TransportService"],
-            logic: "string",
-            pageSize: 0,
-            pageNumber: 0,
-            all: true
-        };
-        fetchFilteredData('/TransportFeatures', filter).then(response => {
-            setTransportFeatures(response);
-            setFetching(false);
-        })
-        .catch(error => {
-            console.error('There was an error fetching the transport features!', error);
-            setFetching(false);
-        });
-    };
-
-    const fetchFeatures = async () => {
-        fetchData('/Features').then(response => {
-            setFeatures(response);
-        })
-        .catch(error => {
-            console.error('There was an error fetching the features!', error);
-        });
-    };
 
     const fetchTransportServices = async () => {
         fetchData('/TransportServices').then(response => {
             setTransportServices(response);
         })
-        .catch(error => {
-            console.error('There was an error fetching the transport services!', error);
-        });
+            .catch(error => {
+                console.error('There was an error fetching the transport services!', error);
+            });
     };
 
-    const handleAddTransportFeature = () => {
-        setEditingTransportFeature(null);
-        setNewTransportFeature({
+    const fetchFeatures = async () => {
+        fetchData('/Feature').then(response => {
+            setFeatures(response);
+        })
+            .catch(error => {
+                console.error('There was an error fetching the features!', error);
+            });
+    };
+
+    const fetchTransportFeatures = async () => {
+        setFetching(true);
+        fetchData('/TransportServiceFeature').then(response => {
+            setTransportFeatures(response);
+            setFetching(false);
+        })
+            .catch(error => {
+                console.error('There was an error fetching the transport features!', error);
+                setFetching(false);
+            });
+    };
+
+    const handleAddFeature = () => {
+        setEditingFeature(null);
+        setNewFeature({
             id: 0,
-            featureId: 0,
             transportServiceId: 0,
+            featureIds: [],
             isDeleted: false
         });
         setShowPopup(true);
     };
 
-    const handleEditTransportFeature = (transportFeature) => {
-        setEditingTransportFeature(transportFeature);
-        setNewTransportFeature(transportFeature);
+    const handleEditFeature = (feature) => {
+        setEditingFeature(feature);
+        setNewFeature({
+            id: feature.id,
+            transportServiceId: feature.transportServiceId,
+            featureIds: feature.featureIds,
+            isDeleted: feature.isDeleted
+        });
         setShowPopup(true);
     };
 
@@ -99,9 +97,17 @@ const TransportFeature = () => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setNewTransportFeature(prevState => ({
+        setNewFeature(prevState => ({
             ...prevState,
             [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleFeatureChange = (selectedOptions) => {
+        const selectedFeatures = selectedOptions ? selectedOptions.map(option => option.value) : [];
+        setNewFeature(prevState => ({
+            ...prevState,
+            featureIds: selectedFeatures
         }));
     };
 
@@ -109,41 +115,134 @@ const TransportFeature = () => {
         e.preventDefault();
         setLoading(true);
 
-        const transportFeatureToSave = {
-            ...newTransportFeature
-        };
+        if (editingFeature) {
+            if (newFeature?.featureIds?.length > editingFeature?.featureIds?.length) {
+                const featuresToAdd = newFeature?.featureIds.filter(f => !editingFeature?.featureIds.includes(f));
+                const featurePromises = featuresToAdd.map(featureId => {
+                    const featureToSave = {
+                        id: 0,
+                        transportServiceId: editingFeature.transportServiceId,
+                        featureId: featureId,
+                        isDeleted: editingFeature.isDeleted
+                    };
+                    return createData('/TransportServiceFeature', featureToSave);
+                });
 
-        setLoading(false);
-        handleClosePopup();
+                try {
+                    await Promise.all(featurePromises);
+                    setToasts([...toasts, { type: 'success', message: 'Feature updated successfully!' }]);
+                    setRefresh(!refresh);
+                } catch (error) {
+                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                } finally {
+                    setLoading(false);
+                    setNewFeature(null);
+                    setEditingFeature(null);
+                    handleClosePopup();
+                }
+            } else if (newFeature?.featureIds?.length < editingFeature?.featureIds?.length) {
+                const featuresToRemove = editingFeature?.featureIds.filter(f => !newFeature?.featureIds.includes(f));
+                const featurePromises = featuresToRemove?.map(featureId => {
+                    return deleteData(`/TransportServiceFeature/DeleteByTransportServiceAndFeature?transportServiceId=${editingFeature?.transportServiceId}&featureId=${featureId}`).then(() => {
+                        setRefresh(!refresh);
+                        setToasts([...toasts, { type: 'success', message: 'Feature updated successfully!' }]);
+                    }).catch(error => {
+                        setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    });
+                });
 
-        if (editingTransportFeature) {
-            updateData(`/TransportFeatures/${editingTransportFeature.id}`, transportFeatureToSave).then(() => {
-                setRefresh(!refresh);
-            });
+                try {
+                    await Promise.all(featurePromises);
+                    setToasts([...toasts, { type: 'success', message: 'Feature updated successfully!' }]);
+                    setRefresh(!refresh);
+                } catch (error) {
+                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                } finally {
+                    setLoading(false);
+                    handleClosePopup();
+                    setNewFeature(null);
+                    setEditingFeature(null);
+                }
+            }
+
         } else {
-            createData('/TransportFeatures', transportFeatureToSave).then(() => {
-                setRefresh(!refresh);
+            const featurePromises = newFeature.featureIds.map(featureId => {
+                const featureToSave = {
+                    id: newFeature.id,
+                    transportServiceId: newFeature.transportServiceId,
+                    featureId: featureId,
+                    isDeleted: newFeature.isDeleted
+                };
+                return createData('/TransportServiceFeature', featureToSave);
             });
+
+            try {
+                await Promise.all(featurePromises);
+                setToasts([...toasts, { type: 'success', message: editingFeature ? 'Feature updated successfully!' : 'Feature created successfully!' }]);
+                setRefresh(!refresh);
+            } catch (error) {
+                setToasts([...toasts, { type: 'danger', message: error.message }]);
+            } finally {
+                setLoading(false);
+                handleClosePopup();
+            }
         }
     };
 
-    const handleDeleteTransportFeature = (transportFeatureId) => {
-        setTransportFeatureToDelete(transportFeatureId);
+    const handleDeleteFeature = (featureIds) => {
+        setFeatureToDelete(featureIds);
         setShowDeleteConfirm(true);
     };
 
-    const confirmDeleteTransportFeature = () => {
-        deleteData(`/TransportFeatures/${transportFeatureToDelete}`).then(() => {
-            setRefresh(!refresh);
-            setToasts([...toasts, { type: 'success', message: 'Transport feature deleted successfully!' }]);
-            setShowDeleteConfirm(false);
-            setTransportFeatureToDelete(null);
-        }).catch(error => {
-            setToasts([...toasts, { type: 'danger', message: error.message }]);
-            setShowDeleteConfirm(false);
-            setTransportFeatureToDelete(null);
-        });
+    const confirmDeleteFeature = async () => {
+        if(featureToDelete?.length > 0){
+            const featuresDeleted = featureToDelete?.map(featureId => {
+                return deleteData(`/TransportServiceFeature/${featureId}`).then(() => {
+                    setRefresh(!refresh);
+                    setToasts([...toasts, { type: 'success', message: 'Feature deleted successfully!' }]);
+
+                }).catch(error => {
+                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                });
+            });
+
+            try {
+                await Promise.all(featuresDeleted);
+                setToasts([...toasts, { type: 'success', message: 'Feature deleted successfully!' }]);
+                setRefresh(!refresh);
+            } catch (error) {
+                setToasts([...toasts, { type: 'danger', message: error.message }]);
+            } finally {
+                setLoading(false);
+                handleClosePopup();
+                setShowDeleteConfirm(false);
+                setFeatureToDelete(null);
+            }
+        }
     };
+
+    const featureOptions = features.map(feature => ({
+        value: feature.id,
+        label: feature.featureName
+    }));
+
+    // Group features by transport service    
+    const groupedFeatures = transportFeatures.reduce((acc, feature) => {
+        const transportService = transportServices.find(ts => ts.id === feature.transportServiceId);
+        if (transportService) {
+            if (!acc[transportService.id]) {
+                acc[transportService.id] = {
+                    transportService,
+                    features: []
+                };
+            }
+            acc[transportService.id].features.push({
+                id: feature?.id,
+                feature: features.find(f => f.id === feature.featureId)
+            });
+        }
+        return acc;
+    }, {});
 
     return (
         <CRow>
@@ -160,8 +259,8 @@ const TransportFeature = () => {
             <CCol>
                 <CCard>
                     <CCardHeader>
-                        <CButton color="primary" onClick={handleAddTransportFeature}>
-                            <CIcon icon={cilUserFollow} /> Add Transport Feature
+                        <CButton color="primary" onClick={handleAddFeature}>
+                            <CIcon icon={cilUserFollow} /> Add Feature
                         </CButton>
                     </CCardHeader>
                     <CCardBody>
@@ -170,77 +269,79 @@ const TransportFeature = () => {
                                 <CSpinner color="primary" />
                             </div>
                         ) : (
-                            <div style={{ overflowX: 'auto' }}>
-                                <table className="table table-hover table-striped table-bordered text-center">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Feature</th>
-                                            <th>Transport Service</th>
-                                            <th>Status</th>
-                                            <th style={{ width: '130px' }}>Actions</th>
+                            <table className="table table-hover table-striped table-bordered text-center">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Transport Service</th>
+                                        <th>Features</th>
+                                        <th>Status</th>
+                                        <th style={{ width: '130px' }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Object.values(groupedFeatures).map(({ transportService, features }) => (
+                                        <tr key={transportService.id}>
+                                            <td>{transportService.id}</td>
+                                            <td>{transportService.model} - {transportService.make}</td>
+                                            <td>{features.map(f => f?.feature?.featureName).join(', ')}</td>
+                                            <td>
+                                                <CBadge color={getStatusBadge(transportService.isDeleted)}>
+                                                    {getStatusText(transportService.isDeleted)}
+                                                </CBadge>
+                                            </td>
+                                            <td>
+                                                <CButton className='mx-2' color="info" size="sm" onClick={() => handleEditFeature({ id: features.map(f => f?.id), transportServiceId: transportService.id, featureIds: features?.map(f => f?.feature?.id), isDeleted: transportService.isDeleted })}>
+                                                    <CIcon icon={cilPencil} />
+                                                </CButton>
+                                                <CButton color="danger" size="sm" onClick={() => handleDeleteFeature(features.map(f => f?.id))}>
+                                                    <CIcon icon={cilTrash} />
+                                                </CButton>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {transportFeatures.map(transportFeature => (
-                                            <tr key={transportFeature.id}>
-                                                <td>{transportFeature.id}</td>
-                                                <td>{features.find(f => f.id === transportFeature.featureId)?.featureName || 'Unknown'}</td>
-                                                <td>{transportServices.find(ts => ts.id === transportFeature.transportServiceId)?.name || 'Unknown'}</td>
-                                                <td>
-                                                    <CBadge color={getStatusBadge(transportFeature.isDeleted)}>
-                                                        {getStatusText(transportFeature.isDeleted)}
-                                                    </CBadge>
-                                                </td>
-                                                <td>
-                                                    <CButton className='mx-2' color="info" size="sm" onClick={() => handleEditTransportFeature(transportFeature)}>
-                                                        <CIcon icon={cilPencil} />
-                                                    </CButton>
-                                                    <CButton color="danger" size="sm" onClick={() => handleDeleteTransportFeature(transportFeature.id)}>
-                                                        <CIcon icon={cilTrash} />
-                                                    </CButton>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    ))}
+                                </tbody>
+                            </table>
                         )}
                     </CCardBody>
                 </CCard>
             </CCol>
 
             <CModal visible={showPopup} onClose={handleClosePopup}>
-                <CModalHeader closeButton>{editingTransportFeature ? 'Edit Transport Feature' : 'Add New Transport Feature'}</CModalHeader>
+                <CModalHeader closeButton>{editingFeature ? 'Edit Feature' : 'Add New Feature'}</CModalHeader>
                 <CModalBody>
                     <CForm onSubmit={handleSubmit}>
                         <div className="mb-3">
-                            <CFormLabel htmlFor="featureId">Feature</CFormLabel>
-                            <CFormSelect id="featureId" name="featureId" value={newTransportFeature.featureId} onChange={handleChange} required disabled={loading}>
-                                <option value="">Select Feature</option>
-                                {features.map(feature => (
-                                    <option key={feature.id} value={feature.id}>{feature.featureName}</option>
-                                ))}
-                            </CFormSelect>
-                        </div>
-                        
-                        <div className="mb-3">
                             <CFormLabel htmlFor="transportServiceId">Transport Service</CFormLabel>
-                            <CFormSelect id="transportServiceId" name="transportServiceId" value={newTransportFeature.transportServiceId} onChange={handleChange} required disabled={loading}>
+                            <CFormSelect id="transportServiceId" name="transportServiceId" value={newFeature?.transportServiceId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Transport Service</option>
-                                {transportServices.map(service => (
-                                    <option key={service.id} value={service.id}>{service.name}</option>
+                                {transportServices.map(transportService => (
+                                    <option key={transportService.id} value={transportService.id}>{transportService?.model} - {transportService.make}</option>
                                 ))}
                             </CFormSelect>
                         </div>
-                        
+
                         <div className="mb-3">
-                            <CFormCheck id="isDeleted" name="isDeleted" checked={newTransportFeature.isDeleted} onChange={handleChange} label="Is Deleted" disabled={loading} />
+                            <CFormLabel htmlFor="featureIds">Features</CFormLabel>
+                            <Select
+                                id="featureIds"
+                                name="featureIds"
+                                required
+                                isMulti
+                                options={featureOptions}
+                                value={featureOptions.filter(option => newFeature?.featureIds?.includes(option.value))}
+                                onChange={handleFeatureChange}
+                                isDisabled={loading}
+                            />
                         </div>
-                        
+
+                        <div className="mb-3">
+                            <CFormCheck id="isDeleted" name="isDeleted" checked={newFeature?.isDeleted} onChange={handleChange} label="Is Deleted" disabled={loading} />
+                        </div>
+
                         <CModalFooter className="d-flex justify-content-end">
                             <CButton color="primary" type="submit" disabled={loading}>
-                                {loading ? <CSpinner size="sm" /> : (editingTransportFeature ? 'Save Changes' : 'Add Transport Feature')}
+                                {loading ? <CSpinner size="sm" /> : (editingFeature ? 'Save Changes' : 'Add Feature')}
                             </CButton>
                             <CButton color="secondary" onClick={handleClosePopup} disabled={loading}>Cancel</CButton>
                         </CModalFooter>
@@ -251,10 +352,10 @@ const TransportFeature = () => {
             <DeleteConfirmation
                 visible={showDeleteConfirm}
                 onClose={() => setShowDeleteConfirm(false)}
-                onConfirm={confirmDeleteTransportFeature}
+                onConfirm={confirmDeleteFeature}
             />
         </CRow>
     );
 };
 
-export default TransportFeature;
+export default TransportFeatures;

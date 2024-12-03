@@ -2,9 +2,12 @@ import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const User = React.lazy(() => import('./views/user/User'))
+const Hotel = React.lazy(() => import('./views/hotel/Hotel'))
 const Province = React.lazy(() => import('./components/province/Province'))
 const District = React.lazy(() => import('./components/district/District'))
 const Commune = React.lazy(() => import('./components/commune/Commune'))
+const Amenity = React.lazy(() => import('./components/amenity/Amenity'))
+const HotelAmenity = React.lazy(() => import('./components/hotel-amenity/HotelAmenity'))
 const TransportService = React.lazy(() => import('./components/Transport/TransportService'))
 const Dietary = React.lazy(() => import('./components/dietary/Dietary'))
 const Cusine = React.lazy(() => import('./components/cusine/Cusine'))
@@ -21,10 +24,12 @@ const AdditionalInformation = React.lazy(() => import('./components/additional/A
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
-  { path: '//user-management', name: 'User', element: User },
+  { path: '/user-management', name: 'User', element: User },
   // hotel
-  { path: '/hotels', name: 'Hotel', element: Dashboard },
+  { path: '/hotels', name: 'Hotel', element: Hotel },
   { path: '/rooms', name: 'Room', element: Room },
+  { path: '/amenities', name: 'Amenity', element: Amenity },
+  { path: '/hotel-amenities', name: 'Hotel Amenities', element: HotelAmenity },
   { path: '/provinces', name: 'Province', element: Province },
   { path: '/districts', name: 'District', element: District },
   { path: '/communes', name: 'Commune', element: Commune },

@@ -115,50 +115,141 @@ const RestaurantDietaries = () => {
         e.preventDefault();
         setLoading(true);
 
-        const dietaryToSave = {
-            ...newDietary
-        };
-
-        setLoading(false);
-        handleClosePopup();
-
         if (editingDietary) {
-            setToasts([...toasts, { type: 'success', message: 'Dietary updated successfully!' }]);
+            // if editingDietary is not null, then update the dietary
+            // loop newDietary.dietaryIds
+            // if length of newDietary.dietaryIds > editingDietary.dietaryIds
+            // insert more dietary  -- [1,2,3,4] > [1,2,3] => insert [4]
+            // if length of newDietary.dietaryIds < editingDieary.dietaryIds
+            // remove dietary  -- [1,2,3] > [1,2,3,4] => remove [4]
 
-            updateData(`/RestaurantDietaryOption/${editingDietary.id}`, dietaryToSave).then(() => {
-                setRefresh(!refresh);
-            });
+            if (newDietary?.dietaryIds?.length > editingDietary?.dietaryIds?.length) {
+                const dietaryToAdd = newDietary?.dietaryIds.filter(d => !editingDietary?.dietaryIds.includes(d));
+                const dietaryPromises = dietaryToAdd.map(dietaryOptionId => {
+                    const dietaryToSave = {
+                        id: 0,
+                        restaurantId: editingDietary.restaurantId,
+                        dietaryOptionId: dietaryOptionId,
+                        isDeleted: editingDietary.isDeleted
+                    };
+                    return createData('/RestaurantDietaryOption', dietaryToSave);
+                });
+
+                try {
+                    await Promise.all(dietaryPromises);
+                    setToasts([...toasts, { type: 'success', message: 'Dietary updated successfully!' }]);
+                    setRefresh(!refresh);
+                } catch (error) {
+                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                } finally {
+                    setLoading(false);
+                    setNewDietary(null);
+                    setEditingDietary(null);
+                    handleClosePopup();
+                }
+            } else if (newDietary?.dietaryIds?.length < editingDietary?.dietaryIds?.length) {
+                const dietaryToRemove = editingDietary?.dietaryIds.filter(d => !newDietary?.dietaryIds.includes(d));
+                const dietaryPromises = dietaryToRemove?.map(dietaryOptionId => {
+                    return deleteData(`/RestaurantDietaryOption/DeleteByRestaurantAndDietaryOption?restaurantId=${editingDietary?.restaurantId}&dietaryOptionId=${dietaryOptionId}`).then(() => {
+                        setRefresh(!refresh);
+                        setToasts([...toasts, { type: 'success', message: 'Dietary updated successfully!' }]);
+                    }).catch(error => {
+                        setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    });
+                });
+
+                try {
+                    await Promise.all(dietaryPromises);
+                    setToasts([...toasts, { type: 'success', message: 'Dietary updated successfully!' }]);
+                    setRefresh(!refresh);
+                } catch (error) {
+                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                } finally {
+                    setLoading(false);
+                    handleClosePopup();
+                    setNewDietary(null);
+                    setEditingDietary(null);
+                }
+            }
+
         } else {
-            setToasts([...toasts, { type: 'success', message: 'Dietary created successfully!' }]);
-
-            createData('/RestaurantDietaryOption', dietaryToSave).then(() => {
-                setRefresh(!refresh);
+            const dietaryPromises = newDietary.dietaryIds.map(dietaryOptionId => {
+                const dietaryToSave = {
+                    id: newDietary.id,
+                    restaurantId: newDietary.restaurantId,
+                    dietaryOptionId: dietaryOptionId,
+                    isDeleted: newDietary.isDeleted
+                };
+                return createData('/RestaurantDietaryOption', dietaryToSave);
             });
+
+            try {
+                await Promise.all(dietaryPromises);
+                setToasts([...toasts, { type: 'success', message: editingDietary ? 'Dietary updated successfully!' : 'Dietary created successfully!' }]);
+                setRefresh(!refresh);
+            } catch (error) {
+                setToasts([...toasts, { type: 'danger', message: error.message }]);
+            } finally {
+                setLoading(false);
+                handleClosePopup();
+            }
         }
     };
 
-    const handleDeleteDietary = (dietaryId) => {
-        setDietaryToDelete(dietaryId);
+    const handleDeleteDietary = (dietaryIds) => {
+        setDietaryToDelete(dietaryIds);
         setShowDeleteConfirm(true);
     };
 
-    const confirmDeleteDietary = () => {
-        deleteData(`/RestaurantDietaries/${dietaryToDelete}`).then(() => {
-            setRefresh(!refresh);
-            setToasts([...toasts, { type: 'success', message: 'Dietary deleted successfully!' }]);
-            setShowDeleteConfirm(false);
-            setDietaryToDelete(null);
-        }).catch(error => {
-            setToasts([...toasts, { type: 'danger', message: error.message }]);
-            setShowDeleteConfirm(false);
-            setDietaryToDelete(null);
-        });
+    const confirmDeleteDietary = async () => {
+        if(dietaryToDelete?.length > 0){
+            const dietariesDeleted = dietaryToDelete?.map(dietaryId => {
+                return deleteData(`/RestaurantDietaryOption/${dietaryId}`).then(() => {
+                    setRefresh(!refresh);
+                    setToasts([...toasts, { type: 'success', message: 'Dietary deleted successfully!' }]);
+
+                }).catch(error => {
+                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                });
+            });
+
+            try {
+                await Promise.all(dietariesDeleted);
+                setToasts([...toasts, { type: 'success', message: 'Dietary deleted successfully!' }]);
+                setRefresh(!refresh);
+            } catch (error) {
+                setToasts([...toasts, { type: 'danger', message: error.message }]);
+            } finally {
+                setLoading(false);
+                handleClosePopup();
+                setShowDeleteConfirm(false);
+                setDietaryToDelete(null);
+            }
+        }
     };
 
     const dietaryOptions = dietaries.map(dietary => ({
         value: dietary.id,
         label: dietary.optionName
     }));
+
+    // Group dietaries by restaurant
+    const groupedDietaries = restaurantDietaries.reduce((acc, dietary) => {
+        const restaurant = restaurants.find(r => r.id === dietary.restaurantId);
+        if (restaurant) {
+            if (!acc[restaurant.id]) {
+                acc[restaurant.id] = {
+                    restaurant,
+                    dietaries: []
+                };
+            }
+            acc[restaurant.id].dietaries.push({
+                id: dietary?.id,
+                dietary: dietaries.find(d => d.id === dietary.dietaryOptionId)
+            });
+        }
+        return acc;
+    }, {});
 
     return (
         <CRow>
@@ -192,25 +283,25 @@ const RestaurantDietaries = () => {
                                         <th>Restaurant</th>
                                         <th>Dietaries</th>
                                         <th>Status</th>
-                                        <th style={{width: '130px'}}>Actions</th>
+                                        <th style={{ width: '130px' }}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {restaurantDietaries.map(dietary => (
-                                        <tr key={dietary.id}>
-                                            <td>{dietary.id}</td>
-                                            <td>{restaurants.find(r => r.id === dietary.restaurantId)?.name}</td>
-                                            <td>{dietary?.dietaryIds?.map(id => dietaries.find(d => d.id === id)?.optionName).join(', ')}</td>
+                                    {Object.values(groupedDietaries).map(({ restaurant, dietaries }) => (
+                                        <tr key={restaurant.id}>
+                                            <td>{restaurant.id}</td>
+                                            <td>{restaurant.name}</td>
+                                            <td>{dietaries.map(d => d?.dietary?.optionName).join(', ')}</td>
                                             <td>
-                                                <CBadge color={getStatusBadge(dietary.isDeleted)}>
-                                                    {getStatusText(dietary.isDeleted)}
+                                                <CBadge color={getStatusBadge(restaurant.isDeleted)}>
+                                                    {getStatusText(restaurant.isDeleted)}
                                                 </CBadge>
                                             </td>
                                             <td>
-                                                <CButton className='mx-2' color="info" size="sm" onClick={() => handleEditDietary(dietary)}>
+                                                <CButton className='mx-2' color="info" size="sm" onClick={() => handleEditDietary({ id: dietaries.map(d => d?.id), restaurantId: restaurant.id, dietaryIds: dietaries?.map(d => d?.dietary?.id), isDeleted: restaurant.isDeleted })}>
                                                     <CIcon icon={cilPencil} />
                                                 </CButton>
-                                                <CButton color="danger" size="sm" onClick={() => handleDeleteDietary(dietary.id)}>
+                                                <CButton color="danger" size="sm" onClick={() => handleDeleteDietary(dietaries.map(d => d?.id))}>
                                                     <CIcon icon={cilTrash} />
                                                 </CButton>
                                             </td>
@@ -229,31 +320,32 @@ const RestaurantDietaries = () => {
                     <CForm onSubmit={handleSubmit}>
                         <div className="mb-3">
                             <CFormLabel htmlFor="restaurantId">Restaurant</CFormLabel>
-                            <CFormSelect id="restaurantId" name="restaurantId" value={newDietary.restaurantId} onChange={handleChange} required disabled={loading}>
+                            <CFormSelect id="restaurantId" name="restaurantId" value={newDietary?.restaurantId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Restaurant</option>
                                 {restaurants.map(restaurant => (
                                     <option key={restaurant.id} value={restaurant.id}>{restaurant.name}</option>
                                 ))}
                             </CFormSelect>
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="dietaryIds">Dietaries</CFormLabel>
                             <Select
                                 id="dietaryIds"
                                 name="dietaryIds"
+                                required
                                 isMulti
                                 options={dietaryOptions}
-                                value={dietaryOptions.filter(option => newDietary.dietaryIds.includes(option.value))}
+                                value={dietaryOptions.filter(option => newDietary?.dietaryIds?.includes(option.value))}
                                 onChange={handleDietaryChange}
                                 isDisabled={loading}
                             />
                         </div>
-                        
+
                         <div className="mb-3">
-                            <CFormCheck id="isDeleted" name="isDeleted" checked={newDietary.isDeleted} onChange={handleChange} label="Is Deleted" disabled={loading} />
+                            <CFormCheck id="isDeleted" name="isDeleted" checked={newDietary?.isDeleted} onChange={handleChange} label="Is Deleted" disabled={loading} />
                         </div>
-                        
+
                         <CModalFooter className="d-flex justify-content-end">
                             <CButton color="primary" type="submit" disabled={loading}>
                                 {loading ? <CSpinner size="sm" /> : (editingDietary ? 'Save Changes' : 'Add Dietary')}

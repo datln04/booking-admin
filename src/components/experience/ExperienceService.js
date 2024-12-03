@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CBadge, CModal, CModalHeader, CModalBody, CModalFooter, CForm, CFormLabel, CFormInput, CFormCheck, CFormSelect, CToast, CToastBody, CToastHeader, CToaster, CSpinner } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilPencil, cilTrash, cilUserFollow } from '@coreui/icons';
+import { cilImage, cilImagePlus, cilPencil, cilTrash, cilUserFollow } from '@coreui/icons';
 import { createData, fetchData, updateData, deleteData, fetchFilteredData } from '../../service/service';
 import { uploadImage } from '../../util/Util';
 import ImageUpload from '../../util/ImageUpload';
 import DeleteConfirmation from '../../util/DeleteConfirmation';
 import TimeRangePicker from '@wojtekmaj/react-timerange-picker';
-import { UserRole } from '../../util/Enum';
+import { ImageType, UserRole } from '../../util/Enum';
 
 const getStatusBadge = (availabilityStatus) => {
     return availabilityStatus === 'Unavailable' ? 'danger' : 'success';
@@ -48,6 +48,14 @@ const Activities = () => {
     const [refresh, setRefresh] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [users, setUsers] = useState([]);
+
+    const [showImagePopup, setShowImagePopup] = useState(false);
+    const [showImageSubPopup, setShowImageSubPopup] = useState(false);
+    // const [image, setImage] = useState(null);
+    const [images, setImages] = useState([]);
+    const [editingImage, setEditingImage] = useState(null);
+    const [newImage, setNewImage] = useState({ id: 0, url: '', description: '' });
+
 
     useEffect(() => {
         fetchActivities();
@@ -126,6 +134,8 @@ const Activities = () => {
 
     const handleClosePopup = () => {
         setShowPopup(false);
+        setShowImageSubPopup(false);
+        setShowImagePopup(false);
     };
 
     const handleChange = (e) => {
@@ -160,7 +170,6 @@ const Activities = () => {
         }
 
         let durationString;
-        console.log(newActivity);
 
         if (editingActivity) {
             // Parse the time strings into Date objects
@@ -222,6 +231,104 @@ const Activities = () => {
         });
     };
 
+    const handleImageSetup = (activityId) => {
+        const filter = {
+            filters: [
+                {
+                    field: "ServiceId",
+                    operator: "Equal",
+                    value: activityId
+                },
+                {
+                    field: "ServiceType",
+                    operator: "Equal",
+                    value: "ExperienceService"
+                }
+            ],
+            includes: [],
+            logic: "And",
+            pageSize: 0,
+            pageNumber: 0,
+            all: true
+        };
+        // Fetch images for the room
+        fetchFilteredData(`/Images`, filter).then(response => {
+            setNewImage({ id: 0, imageUrl: '', serviceId: activityId, serviceType: 'ExperienceService', imageType: '', isDeleted: false });
+            setImages(response);
+            setShowImagePopup(true);
+        }).catch(error => {
+            console.error('There was an error fetching the images!', error);
+        });
+    };
+
+    const handleAddImage = () => {
+        setEditingImage(null);
+        // setNewImage({ id: 0, url: '', description: '' });
+        setShowImageSubPopup(true);
+    };
+
+    const handleEditImage = (image) => {
+        setEditingImage(image);
+        setNewImage(image);
+        setShowImageSubPopup(true);
+    };
+
+    const handleDeleteImage = (imageId) => {
+        deleteData(`/Images/${imageId}`).then(() => {
+            setImages(images.filter(image => image.id !== imageId));
+            setToasts([...toasts, { type: 'success', message: 'Image deleted successfully!' }]);
+        }).catch(error => {
+            setToasts([...toasts, { type: 'danger', message: error.message }]);
+        });
+    };
+
+    const handleImageChange = (e) => {
+        const { name, value } = e.target;
+        setNewImage(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    const handleImageSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        let imageUrl = '';
+
+        if (image) {
+            const formData = new FormData();
+            try {
+                imageUrl = await uploadImage(formData, image);
+                setToasts([...toasts, { type: 'success', message: 'Image uploaded successfully!' }]);
+            } catch (error) {
+                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setLoading(false);
+                return;
+            }
+        }
+
+        const imageToSave = {
+            ...newImage,
+            imageUrl: imageUrl || newImage.imageUrl,
+        };
+
+
+        if (editingImage) {
+            updateData(`/Images/${editingImage.id}`, imageToSave).then(() => {
+                setToasts([...toasts, { type: 'success', message: 'Image updated successfully!' }]);
+                setRefresh(!refresh);
+            });
+        } else {
+            createData('/Images', imageToSave).then(() => {
+                setToasts([...toasts, { type: 'success', message: 'Image created successfully!' }]);
+                setRefresh(!refresh);
+            });
+        }
+        setLoading(false);
+        handleClosePopup();
+    };
+
     return (
         <CRow>
             <CToaster position="top-center">
@@ -254,7 +361,7 @@ const Activities = () => {
                                         <th>ID</th>
                                         <th>Activity Name</th>
                                         <th>Status</th>
-                                        <th style={{ width: '130px' }}>Actions</th>
+                                        <th style={{ width: '15%' }}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -269,8 +376,11 @@ const Activities = () => {
                                                 </CBadge>
                                             </td>
                                             <td>
-                                                <CButton className='mx-2' color="info" size="sm" onClick={() => handleEditActivity(activity)}>
+                                                <CButton className='' color="info" size="sm" onClick={() => handleEditActivity(activity)}>
                                                     <CIcon icon={cilPencil} />
+                                                </CButton>
+                                                <CButton className='mx-2' color="warning" size="sm" onClick={() => handleImageSetup(activity?.id)}>
+                                                    <CIcon icon={cilImage} />
                                                 </CButton>
                                                 <CButton color="danger" size="sm" onClick={() => handleDeleteActivity(activity.id)}>
                                                     <CIcon icon={cilTrash} />
@@ -365,16 +475,6 @@ const Activities = () => {
                             <CFormLabel htmlFor="locationCity">Location City</CFormLabel>
                             <CFormInput type="text" id="locationCity" name="locationCity" value={newActivity.locationCity} onChange={handleChange} required disabled={loading} />
                         </div>
-                        {/*                         
-                        <div className="mb-3">
-                            <CFormLabel htmlFor="locationLat">Location Latitude</CFormLabel>
-                            <CFormInput type="number" id="locationLat" name="locationLat" value={0} disabled />
-                        </div>
-                        
-                        <div className="mb-3">
-                            <CFormLabel htmlFor="locationLng">Location Longitude</CFormLabel>
-                            <CFormInput type="number" id="locationLng" name="locationLng" value={0} disabled />
-                        </div> */}
 
                         <div className="mb-3">
                             <CFormLabel htmlFor="includes">Includes</CFormLabel>
@@ -390,6 +490,72 @@ const Activities = () => {
                                 {loading ? <CSpinner size="sm" /> : (editingActivity ? 'Save Changes' : 'Add Activity')}
                             </CButton>
                             <CButton color="secondary" onClick={handleClosePopup} disabled={loading}>Cancel</CButton>
+                        </CModalFooter>
+                    </CForm>
+                </CModalBody>
+            </CModal>
+
+            <CModal visible={showImagePopup} onClose={() => setShowImagePopup(false)}>
+                <CModalHeader closeButton>Manage Images</CModalHeader>
+                <CModalBody>
+                    <CButton color="primary" onClick={handleAddImage}>
+                        <CIcon icon={cilImagePlus} /> Add Image
+                    </CButton>
+                    <table className="table table-hover table-striped table-bordered text-center mt-3">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Image</th>
+                                <th>Image Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {images.map(image => (
+                                <tr key={image.id}>
+                                    <td>{image.id}</td>
+                                    <td>
+                                        <img src={image?.imageUrl} alt="Room" style={{ width: '100px' }} />
+                                    </td>
+                                    <td>{image?.imageType}</td>
+                                    <td>
+                                        <CButton className='' color="info" size="sm" onClick={() => handleEditImage(image)}>
+                                            <CIcon icon={cilPencil} />
+                                        </CButton>
+                                        <CButton className='mx-1' color="danger" size="sm" onClick={() => handleDeleteImage(image.id)}>
+                                            <CIcon icon={cilTrash} />
+                                        </CButton>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </CModalBody>
+            </CModal>
+
+            <CModal visible={showImageSubPopup} onClose={() => setShowImageSubPopup(false)}>
+                <CModalHeader closeButton>{editingImage ? 'Edit Image' : 'Add New Image'}</CModalHeader>
+                <CModalBody>
+                    <CForm onSubmit={handleImageSubmit}>
+                        <div className="mb-3">
+                            <CFormLabel htmlFor="image">Image URL</CFormLabel>
+                            <ImageUpload setImage={setImage} imageUrl={editingImage ? editingImage?.imageUrl : null} />
+                        </div>
+
+                        <div className='mb-3'>
+                            <CFormSelect id="imageType" name="imageType" value={editingImage?.imageType} onChange={handleImageChange} required disabled={loading}>
+                                <option value="">Select Image Type</option>
+                                {ImageType.map(imageType =>
+                                    <option key={imageType.key} value={imageType.value}>{imageType.value}</option>
+                                )}
+                            </CFormSelect>
+                        </div>
+
+                        <CModalFooter className="d-flex justify-content-end">
+                            <CButton color="primary" type="submit" disabled={loading}>
+                                {loading ? <CSpinner size="sm" /> : (editingImage ? 'Save Changes' : 'Add Image')}
+                            </CButton>
+                            <CButton color="secondary" onClick={() => setShowImageSubPopup(false)} disabled={loading}>Cancel</CButton>
                         </CModalFooter>
                     </CForm>
                 </CModalBody>

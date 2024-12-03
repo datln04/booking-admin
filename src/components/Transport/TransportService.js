@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CBadge, CModal, CModalHeader, CModalBody, CModalFooter, CForm, CFormLabel, CFormInput, CFormCheck, CFormSelect, CToast, CToastBody, CToastHeader, CToaster, CSpinner } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilCarAlt, cilPencil, cilTrash } from '@coreui/icons';
+import { cilCarAlt, cilImage, cilImagePlus, cilPencil, cilTrash, cilUserFollow } from '@coreui/icons';
 import { createData, fetchData, updateData, deleteData, fetchFilteredData } from '../../service/service';
 import DeleteConfirmation from '../../util/DeleteConfirmation';
-import {UserRole, VehicleData, FuelTypes, Transmissions, AvailabilityStatuses } from '../../util/Enum';
+import {UserRole, VehicleData, FuelTypes, Transmissions, AvailabilityStatuses, ImageType } from '../../util/Enum';
+import ImageUpload from '../../util/ImageUpload';
+import { uploadImage } from '../../util/Util';
 
 const getStatusBadge = (isDeleted) => {
     return isDeleted ? 'danger' : 'success';
@@ -42,6 +44,14 @@ const TransportService = () => {
     const [loading, setLoading] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const [fetching, setFetching] = useState(false);
+
+    const [showImagePopup, setShowImagePopup] = useState(false);
+    const [showImageSubPopup, setShowImageSubPopup] = useState(false);
+    const [image, setImage] = useState(null);
+    const [images, setImages] = useState([]);
+    const [editingImage, setEditingImage] = useState(null);
+    const [newImage, setNewImage] = useState({ id: 0, url: '', description: '' });
+
 
     useEffect(() => {
         fetchServices();
@@ -119,6 +129,7 @@ const TransportService = () => {
 
     const handleClosePopup = () => {
         setShowPopup(false);
+        setShowImagePopup(false);
     };
 
     const handleChange = (e) => {
@@ -169,6 +180,105 @@ const TransportService = () => {
         });
     };
 
+    const handleImageSetup = (serviceId) => {
+        const filter = {
+            filters: [
+                {
+                    field: "ServiceId",
+                    operator: "Equal",
+                    value: serviceId
+                },
+                {
+                    field: "ServiceType",
+                    operator: "Equal",
+                    value: "TransportService"
+                }
+            ],
+            includes: [],
+            logic: "And",
+            pageSize: 0,
+            pageNumber: 0,
+            all: true
+        };
+        // Fetch images for the room
+        fetchFilteredData(`/Images`, filter).then(response => {
+            setNewImage({ id: 0, imageUrl: '', serviceId: serviceId, serviceType: 'TransportService', imageType: '', isDeleted: false });
+            setImages(response);
+            setShowImagePopup(true);
+        }).catch(error => {
+            console.error('There was an error fetching the images!', error);
+        });
+    };
+
+    const handleAddImage = () => {
+        setEditingImage(null);
+        // setNewImage({ id: 0, url: '', description: '' });
+        setShowImageSubPopup(true);
+    };
+
+    const handleEditImage = (image) => {
+        setEditingImage(image);
+        setNewImage(image);
+        setShowImageSubPopup(true);
+    };
+
+    const handleDeleteImage = (imageId) => {
+        deleteData(`/Images/${imageId}`).then(() => {
+            setImages(images.filter(image => image.id !== imageId));
+            setToasts([...toasts, { type: 'success', message: 'Image deleted successfully!' }]);
+        }).catch(error => {
+            setToasts([...toasts, { type: 'danger', message: error.message }]);
+        });
+    };
+
+    const handleImageChange = (e) => {
+        const { name, value } = e.target;
+        setNewImage(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    const handleImageSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        let imageUrl = '';
+
+        if (image) {
+            const formData = new FormData();
+            try {
+                imageUrl = await uploadImage(formData, image);
+                setToasts([...toasts, { type: 'success', message: 'Image uploaded successfully!' }]);
+            } catch (error) {
+                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setLoading(false);
+                return;
+            }
+        }
+
+        const imageToSave = {
+            ...newImage,
+            imageUrl: imageUrl || newImage.imageUrl,
+        };
+
+
+        if (editingImage) {
+            updateData(`/Images/${editingImage.id}`, imageToSave).then(() => {
+                setToasts([...toasts, { type: 'success', message: 'Image updated successfully!' }]);
+                setRefresh(!refresh);
+            });
+        } else {
+            createData('/Images', imageToSave).then(() => {
+                setToasts([...toasts, { type: 'success', message: 'Image created successfully!' }]);
+                setRefresh(!refresh);
+            });
+        }
+        setLoading(false);        
+        setShowImageSubPopup(false);
+        handleClosePopup();
+    };
+
     return (
         <CRow>
             <CToaster position="top-center">
@@ -213,7 +323,7 @@ const TransportService = () => {
                                             <th>Location</th>
                                             <th>License Plate</th>
                                             <th>Status</th>
-                                            <th style={{ width: '130px' }}>Actions</th>
+                                            <th style={{ width: '13%' }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -239,8 +349,11 @@ const TransportService = () => {
                                                     </CBadge>
                                                 </td>
                                                 <td>
-                                                    <CButton className='mx-2' color="info" size="sm" onClick={() => handleEditService(service)}>
+                                                    <CButton className='' color="info" size="sm" onClick={() => handleEditService(service)}>
                                                         <CIcon icon={cilPencil} />
+                                                    </CButton>
+                                                    <CButton className='m-1' color="warning" size="sm" onClick={() => handleImageSetup(service?.id)}>
+                                                        <CIcon icon={cilImage} />
                                                     </CButton>
                                                     <CButton color="danger" size="sm" onClick={() => handleDeleteService(service.id)}>
                                                         <CIcon icon={cilTrash} />
@@ -364,6 +477,71 @@ const TransportService = () => {
                                 {loading ? <CSpinner size="sm" /> : (editingService ? 'Save Changes' : 'Add Transport Service')}
                             </CButton>
                             <CButton color="secondary" onClick={handleClosePopup} disabled={loading}>Cancel</CButton>
+                        </CModalFooter>
+                    </CForm>
+                </CModalBody>
+            </CModal>
+            <CModal visible={showImagePopup} onClose={() => setShowImagePopup(false)}>
+                <CModalHeader closeButton>Manage Images</CModalHeader>
+                <CModalBody>
+                    <CButton color="primary" onClick={handleAddImage}>
+                        <CIcon icon={cilImagePlus} /> Add Image
+                    </CButton>
+                    <table className="table table-hover table-striped table-bordered text-center mt-3">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Image</th>
+                                <th>Image Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {images.map(image => (
+                                <tr key={image.id}>
+                                    <td>{image.id}</td>
+                                    <td>
+                                        <img src={image?.imageUrl} alt="Room" style={{ width: '100px' }} />
+                                    </td>
+                                    <td>{image?.imageType}</td>
+                                    <td>
+                                        <CButton className='' color="info" size="sm" onClick={() => handleEditImage(image)}>
+                                            <CIcon icon={cilPencil} />
+                                        </CButton>
+                                        <CButton className='mx-1' color="danger" size="sm" onClick={() => handleDeleteImage(image.id)}>
+                                            <CIcon icon={cilTrash} />
+                                        </CButton>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </CModalBody>
+            </CModal>
+
+            <CModal visible={showImageSubPopup} onClose={() => setShowImageSubPopup(false)}>
+                <CModalHeader closeButton>{editingImage ? 'Edit Image' : 'Add New Image'}</CModalHeader>
+                <CModalBody>
+                    <CForm onSubmit={handleImageSubmit}>
+                        <div className="mb-3">
+                            <CFormLabel htmlFor="image">Image URL</CFormLabel>
+                            <ImageUpload setImage={setImage} imageUrl={editingImage ? editingImage?.imageUrl : null} />
+                        </div>
+
+                        <div className='mb-3'>
+                            <CFormSelect id="imageType" name="imageType" value={editingImage?.imageType} onChange={handleImageChange} required disabled={loading}>
+                                <option value="">Select Image Type</option>
+                                {ImageType.map(imageType =>
+                                    <option key={imageType.key} value={imageType.value}>{imageType.value}</option>
+                                )}
+                            </CFormSelect>
+                        </div>
+
+                        <CModalFooter className="d-flex justify-content-end">
+                            <CButton color="primary" type="submit" disabled={loading}>
+                                {loading ? <CSpinner size="sm" /> : (editingImage ? 'Save Changes' : 'Add Image')}
+                            </CButton>
+                            <CButton color="secondary" onClick={() => setShowImageSubPopup(false)} disabled={loading}>Cancel</CButton>
                         </CModalFooter>
                     </CForm>
                 </CModalBody>

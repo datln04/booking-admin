@@ -71,3 +71,8 @@ export const BedTypes = [
     { key: 'ROLLAWAY', value: 'Rollaway Bed' }
 ];
 
+export const ImageType = [
+    // { key: 'IMAGE', value: 'Image' },
+    { key: 'THUMBNAIL', value: 'Thumbnail' },
+]
+

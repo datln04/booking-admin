@@ -3,7 +3,7 @@ import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CBadge, CModal, CMo
 import CIcon from '@coreui/icons-react';
 import { cilPencil, cilTrash, cilUserFollow } from '@coreui/icons';
 import { createData, fetchData, updateData, deleteData } from '../../service/service';
-import DeleteConfirmation from '../../util/DeleteConfirmation';
+import DeleteConfirmation from '../../util/DeleteConfirmation'; // Import the DeleteConfirmation component
 
 const getStatusBadge = (isDeleted) => {
     return isDeleted ? 'danger' : 'success';
@@ -13,51 +13,53 @@ const getStatusText = (isDeleted) => {
     return isDeleted ? 'Deleted' : 'Active';
 };
 
-const AdditionalInformation = () => {
-    const [additionalInfo, setAdditionalInfo] = useState([]);
+const Amenity = () => {
+    const [amenities, setAmenities] = useState([]);
     const [showPopup, setShowPopup] = useState(false);
-    const [editingInfo, setEditingInfo] = useState(null);
+    const [editingAmenity, setEditingAmenity] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [infoToDelete, setInfoToDelete] = useState(null);
-    const [newInfo, setNewInfo] = useState({
+    const [amenityToDelete, setAmenityToDelete] = useState(null);
+    const [newAmenity, setNewAmenity] = useState({
         id: 0,
         name: '',
+        description: '',
         isDeleted: false
     });
     const [toasts, setToasts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [refresh, setRefresh] = useState(false);
-    const [fetching, setFetching] = useState(false);
+    const [fetching, setFetching] = useState(false); // Add fetching state
 
     useEffect(() => {
-        fetchAdditionalInfo();
+        fetchAmenities();
     }, [refresh]);
 
-    const fetchAdditionalInfo = async () => {
-        setFetching(true);
-        fetchData('/AdditionalInfo').then(response => {
-            setAdditionalInfo(response);
-            setFetching(false);
+    const fetchAmenities = async () => {
+        setFetching(true); // Set fetching to true before fetching data
+        fetchData('/Amenity').then(response => {
+            setAmenities(response);
+            setFetching(false); // Set fetching to false after data is fetched
         })
             .catch(error => {
-                console.error('There was an error fetching the additional information!', error);
-                setFetching(false);
+                console.error('There was an error fetching the amenities!', error);
+                setFetching(false); // Set fetching to false in case of error
             });
     };
 
-    const handleAddInfo = () => {
-        setEditingInfo(null);
-        setNewInfo({
+    const handleAddAmenity = () => {
+        setEditingAmenity(null);
+        setNewAmenity({
             id: 0,
             name: '',
+            description: '',
             isDeleted: false
         });
         setShowPopup(true);
     };
 
-    const handleEditInfo = (info) => {
-        setEditingInfo(info);
-        setNewInfo(info);
+    const handleEditAmenity = (amenity) => {
+        setEditingAmenity(amenity);
+        setNewAmenity(amenity);
         setShowPopup(true);
     };
 
@@ -67,7 +69,7 @@ const AdditionalInformation = () => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setNewInfo(prevState => ({
+        setNewAmenity(prevState => ({
             ...prevState,
             [name]: type === 'checkbox' ? checked : value
         }));
@@ -77,41 +79,39 @@ const AdditionalInformation = () => {
         e.preventDefault();
         setLoading(true);
 
-        const infoToSave = {
-            ...newInfo
+        const amenityToSave = {
+            ...newAmenity
         };
 
         setLoading(false);
         handleClosePopup();
 
-        if (editingInfo) {
-            updateData(`/AdditionalInfo/${editingInfo.id}`, infoToSave).then(() => {
+        if (editingAmenity) {
+            updateData(`/Amenity/${editingAmenity.id}`, amenityToSave).then(() => {
                 setRefresh(!refresh);
-                setToasts([...toasts, { type: 'success', message: 'Information updated successfully!' }]);
             });
         } else {
-            createData('/AdditionalInfo', infoToSave).then(() => {
-                setToasts([...toasts, { type: 'success', message: 'Information created successfully!' }]);
+            createData('/Amenity', amenityToSave).then(() => {
                 setRefresh(!refresh);
             });
         }
     };
 
-    const handleDeleteInfo = (infoId) => {
-        setInfoToDelete(infoId);
+    const handleDeleteAmenity = (amenityId) => {
+        setAmenityToDelete(amenityId);
         setShowDeleteConfirm(true);
     };
 
-    const confirmDeleteInfo = () => {
-        deleteData(`/AdditionalInfo/${infoToDelete}`).then(() => {
+    const confirmDeleteAmenity = () => {
+        deleteData(`/Amenity/${amenityToDelete}`).then(() => {
             setRefresh(!refresh);
-            setToasts([...toasts, { type: 'success', message: 'Information deleted successfully!' }]);
+            setToasts([...toasts, { type: 'success', message: 'Amenity deleted successfully!' }]);
             setShowDeleteConfirm(false);
-            setInfoToDelete(null);
+            setAmenityToDelete(null);
         }).catch(error => {
             setToasts([...toasts, { type: 'danger', message: error.message }]);
             setShowDeleteConfirm(false);
-            setInfoToDelete(null);
+            setAmenityToDelete(null);
         });
     };
 
@@ -130,12 +130,12 @@ const AdditionalInformation = () => {
             <CCol>
                 <CCard>
                     <CCardHeader>
-                        <CButton color="primary" onClick={handleAddInfo}>
-                            <CIcon icon={cilUserFollow} /> Add Information
+                        <CButton color="primary" onClick={handleAddAmenity}>
+                            <CIcon icon={cilUserFollow} /> Add Amenity
                         </CButton>
                     </CCardHeader>
                     <CCardBody>
-                        {fetching ? (
+                        {fetching ? ( // Show spinner while fetching data
                             <div className="text-center">
                                 <CSpinner color="primary" />
                             </div>
@@ -145,25 +145,27 @@ const AdditionalInformation = () => {
                                     <tr>
                                         <th>ID</th>
                                         <th>Name</th>
+                                        <th>Description</th>
                                         <th>Status</th>
                                         <th style={{width: '130px'}}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {additionalInfo.map(info => (
-                                        <tr key={info.id}>
-                                            <td>{info.id}</td>
-                                            <td>{info.name}</td>
+                                    {amenities.map(amenity => (
+                                        <tr key={amenity.id}>
+                                            <td>{amenity.id}</td>
+                                            <td>{amenity.name}</td>
+                                            <td>{amenity.description}</td>
                                             <td>
-                                                <CBadge color={getStatusBadge(info.isDeleted)}>
-                                                    {getStatusText(info.isDeleted)}
+                                                <CBadge color={getStatusBadge(amenity.isDeleted)}>
+                                                    {getStatusText(amenity.isDeleted)}
                                                 </CBadge>
                                             </td>
                                             <td>
-                                                <CButton className='mx-2' color="info" size="sm" onClick={() => handleEditInfo(info)}>
+                                                <CButton className='mx-2' color="info" size="sm" onClick={() => handleEditAmenity(amenity)}>
                                                     <CIcon icon={cilPencil} />
                                                 </CButton>
-                                                <CButton color="danger" size="sm" onClick={() => handleDeleteInfo(info.id)}>
+                                                <CButton color="danger" size="sm" onClick={() => handleDeleteAmenity(amenity.id)}>
                                                     <CIcon icon={cilTrash} />
                                                 </CButton>
                                             </td>
@@ -177,21 +179,26 @@ const AdditionalInformation = () => {
             </CCol>
 
             <CModal visible={showPopup} onClose={handleClosePopup}>
-                <CModalHeader closeButton>{editingInfo ? 'Edit Information' : 'Add New Information'}</CModalHeader>
+                <CModalHeader closeButton>{editingAmenity ? 'Edit Amenity' : 'Add New Amenity'}</CModalHeader>
                 <CModalBody>
                     <CForm onSubmit={handleSubmit}>
                         <div className="mb-3">
                             <CFormLabel htmlFor="name">Name</CFormLabel>
-                            <CFormInput type="text" id="name" name="name" value={newInfo.name} onChange={handleChange} required disabled={loading} />
+                            <CFormInput type="text" id="name" name="name" value={newAmenity.name} onChange={handleChange} required disabled={loading} />
                         </div>
                         
                         <div className="mb-3">
-                            <CFormCheck id="isDeleted" name="isDeleted" checked={newInfo.isDeleted} onChange={handleChange} label="Is Deleted" disabled={loading} />
+                            <CFormLabel htmlFor="description">Description</CFormLabel>
+                            <CFormInput type="text" id="description" name="description" value={newAmenity.description} onChange={handleChange} required disabled={loading} />
+                        </div>
+                        
+                        <div className="mb-3">
+                            <CFormCheck id="isDeleted" name="isDeleted" checked={newAmenity.isDeleted} onChange={handleChange} label="Is Deleted" disabled={loading} />
                         </div>
                         
                         <CModalFooter className="d-flex justify-content-end">
                             <CButton color="primary" type="submit" disabled={loading}>
-                                {loading ? <CSpinner size="sm" /> : (editingInfo ? 'Save Changes' : 'Add Information')}
+                                {loading ? <CSpinner size="sm" /> : (editingAmenity ? 'Save Changes' : 'Add Amenity')}
                             </CButton>
                             <CButton color="secondary" onClick={handleClosePopup} disabled={loading}>Cancel</CButton>
                         </CModalFooter>
@@ -202,10 +209,10 @@ const AdditionalInformation = () => {
             <DeleteConfirmation
                 visible={showDeleteConfirm}
                 onClose={() => setShowDeleteConfirm(false)}
-                onConfirm={confirmDeleteInfo}
+                onConfirm={confirmDeleteAmenity}
             />
         </CRow>
     );
 };
 
-export default AdditionalInformation;
+export default Amenity;
