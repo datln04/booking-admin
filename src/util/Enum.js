@@ -72,7 +72,7 @@ export const BedTypes = [
 ];
 
 export const ImageType = [
-    // { key: 'IMAGE', value: 'Image' },
+    { key: 'IMAGE', value: 'Image' },
     { key: 'THUMBNAIL', value: 'Thumbnail' },
 ]
 
