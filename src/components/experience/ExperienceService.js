@@ -446,9 +446,9 @@ const Activities = () => {
                                             <td><img src={activity.image} alt={activity.activityName} className="img-fluid mx-auto d-block" width="50" height="50" /></td>
                                             <td>{activity.id}</td>
                                             <td>{activity.activityName}</td>
-                                            <td>{provinces.find(p => p.id === restaurant.provinceId)?.name || 'Unknown'}</td>
-                                            <td>{districts.find(d => d.id === restaurant.districtId)?.name || 'Unknown'}</td>
-                                            <td>{communes.find(c => c.id === restaurant.communeId)?.name || 'Unknown'}</td>
+                                            <td>{provinces.find(p => p.id === activity.provinceId)?.name || 'Unknown'}</td>
+                                            <td>{districts.find(d => d.id === activity.districtId)?.name || 'Unknown'}</td>
+                                            <td>{communes.find(c => c.id === activity.communeId)?.name || 'Unknown'}</td>
                                             <td>
                                                 <CBadge color={getStatusBadge(activity.availabilityStatus)}>
                                                     {getStatusText(activity.availabilityStatus)}

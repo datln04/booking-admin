@@ -420,9 +420,9 @@ const TransportService = () => {
                                                 <td>{service.mileage}</td>
                                                 <td>{service.location}</td>
                                                 <td>{service.licensePlate}</td>
-                                                <td>{provinces.find(p => p.id === restaurant.provinceId)?.name || 'Unknown'}</td>
-                                                <td>{districts.find(d => d.id === restaurant.districtId)?.name || 'Unknown'}</td>
-                                                <td>{communes.find(c => c.id === restaurant.communeId)?.name || 'Unknown'}</td>
+                                                <td>{provinces.find(p => p.id === service.provinceId)?.name || 'Unknown'}</td>
+                                                <td>{districts.find(d => d.id === service.districtId)?.name || 'Unknown'}</td>
+                                                <td>{communes.find(c => c.id === service.communeId)?.name || 'Unknown'}</td>
                                                 <td>
                                                     <CBadge color={getStatusBadge(service.isDeleted)}>
                                                         {getStatusText(service.isDeleted)}
