@@ -23,6 +23,8 @@ const TransportService = () => {
     const [editingService, setEditingService] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [serviceToDelete, setServiceToDelete] = useState(null);
+    const [selectedProvince, setSelectedProvince] = useState(null);
+
     const [newService, setNewService] = useState({
         id: 0,
         ownerId: 0,

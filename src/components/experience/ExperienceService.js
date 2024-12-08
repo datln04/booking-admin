@@ -202,6 +202,7 @@ const Activities = () => {
         setShowImageSubPopup(false);
         setShowImagePopup(false);
     };
+    const [selectedProvince, setSelectedProvince] = useState(null);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
