@@ -40,6 +40,9 @@ const Activities = () => {
         locationLat: 0,
         locationLng: 0,
         includes: '',
+        provinceId: 0,
+        districtId: 0,
+        communeId: 0,
         isDeleted: false
     });
     const [image, setImage] = useState(null);
@@ -56,10 +59,54 @@ const Activities = () => {
     const [editingImage, setEditingImage] = useState(null);
     const [newImage, setNewImage] = useState({ id: 0, url: '', description: '' });
 
+    const [provinces, setProvinces] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [communes, setCommunes] = useState([]);
 
+    const fetchProvinces = async () => {
+        const filter = {
+            filters: [
+            ],
+            includes: [
+                "Districts",
+                "Districts.Communes"
+            ],
+            logic: "string",
+            pageSize: 0,
+            pageNumber: 0,
+            all: true
+        }
+        fetchFilteredData('/Provinces', filter).then(response => {
+            setProvinces(response);
+        })
+            .catch(error => {
+                console.error('There was an error fetching the provinces!', error);
+            });
+    };
+
+    const fetchDistricts = async () => {
+        fetchData('/Districts').then(response => {
+            setDistricts(response);
+        })
+            .catch(error => {
+                console.error('There was an error fetching the districts!', error);
+            });
+    };
+
+    const fetchCommunes = async () => {
+        fetchData('/Communes').then(response => {
+            setCommunes(response);
+        })
+            .catch(error => {
+                console.error('There was an error fetching the communes!', error);
+            });
+    };
     useEffect(() => {
         fetchActivities();
         fetchUsers();
+        fetchDistricts();
+        fetchCommunes();
+        fetchProvinces();
     }, [refresh]);
 
     const fetchActivities = async () => {
@@ -93,6 +140,9 @@ const Activities = () => {
             locationLat: 0,
             locationLng: 0,
             includes: '',
+            provinceId: 0,
+            districtId: 0,
+            communeId: 0,
             isDeleted: false
         });
         setShowPopup(true);
@@ -131,6 +181,21 @@ const Activities = () => {
         });
         setShowPopup(true);
     };
+    const handleProvinceChange = (provinceId) => {
+        const province = provinces.find(p => p.id === parseInt(provinceId));
+        if (province) {
+            setSelectedProvince(province);
+            setDistricts(province.districts);
+            setCommunes([]); // Reset communes when province changes
+        }
+    };
+
+    const handleDistrictChange = (districtId) => {
+        const district = districts.find(d => d.id === parseInt(districtId));
+        if (district) {
+            setCommunes(district.communes);
+        }
+    };
 
     const handleClosePopup = () => {
         setShowPopup(false);
@@ -144,6 +209,14 @@ const Activities = () => {
             ...prevState,
             [name]: type === 'checkbox' ? checked : value
         }));
+        
+        if (name === 'provinceId') {
+            handleProvinceChange(value);
+        }
+
+        if(name === 'districtId') {
+            handleDistrictChange(value);
+        }
     };
 
     const handleDateTimeRangeChange = (value) => {
@@ -360,6 +433,9 @@ const Activities = () => {
                                         <th>Image</th>
                                         <th>ID</th>
                                         <th>Activity Name</th>
+                                        <th>Province</th>
+                                        <th>District</th>
+                                        <th>Commune</th>
                                         <th>Status</th>
                                         <th style={{ width: '15%' }}>Actions</th>
                                     </tr>
@@ -370,6 +446,9 @@ const Activities = () => {
                                             <td><img src={activity.image} alt={activity.activityName} className="img-fluid mx-auto d-block" width="50" height="50" /></td>
                                             <td>{activity.id}</td>
                                             <td>{activity.activityName}</td>
+                                            <td>{provinces.find(p => p.id === restaurant.provinceId)?.name || 'Unknown'}</td>
+                                            <td>{districts.find(d => d.id === restaurant.districtId)?.name || 'Unknown'}</td>
+                                            <td>{communes.find(c => c.id === restaurant.communeId)?.name || 'Unknown'}</td>
                                             <td>
                                                 <CBadge color={getStatusBadge(activity.availabilityStatus)}>
                                                     {getStatusText(activity.availabilityStatus)}
@@ -480,6 +559,37 @@ const Activities = () => {
                             <CFormLabel htmlFor="includes">Includes</CFormLabel>
                             <CFormInput type="text" id="includes" name="includes" value={newActivity.includes} onChange={handleChange} required disabled={loading} />
                         </div>
+
+                        <div className="mb-3">
+                            <CFormLabel htmlFor="provinceId">Province</CFormLabel>
+                            <CFormSelect id="provinceId" name="provinceId" value={newRestaurant.provinceId} onChange={handleChange} required disabled={loading}>
+                                <option value="">Select Province</option>
+                                {provinces.map(province => (
+                                    <option key={province.id} value={province.id}>{province.name}</option>
+                                ))}
+                            </CFormSelect>
+                        </div>
+
+                        <div className="mb-3">
+                            <CFormLabel htmlFor="districtId">District</CFormLabel>
+                            <CFormSelect id="districtId" name="districtId" value={newRestaurant.districtId} onChange={handleChange} required disabled={loading}>
+                                <option value="">Select District</option>
+                                {districts.map(district => (
+                                    <option key={district.id} value={district.id}>{district.name}</option>
+                                ))}
+                            </CFormSelect>
+                        </div>
+
+                        <div className="mb-3">
+                            <CFormLabel htmlFor="communeId">Commune</CFormLabel>
+                            <CFormSelect id="communeId" name="communeId" value={newRestaurant.communeId} onChange={handleChange} required disabled={loading}>
+                                <option value="">Select Commune</option>
+                                {communes.map(commune => (
+                                    <option key={commune.id} value={commune.id}>{commune.name}</option>
+                                ))}
+                            </CFormSelect>
+                        </div>
+
 
                         <div className="mb-3">
                             <CFormCheck id="isDeleted" name="isDeleted" checked={newActivity.isDeleted} onChange={handleChange} label="Is Deleted" disabled={loading} />

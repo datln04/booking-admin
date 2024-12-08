@@ -4,7 +4,7 @@ import CIcon from '@coreui/icons-react';
 import { cilCarAlt, cilImage, cilImagePlus, cilPencil, cilTrash, cilUserFollow } from '@coreui/icons';
 import { createData, fetchData, updateData, deleteData, fetchFilteredData } from '../../service/service';
 import DeleteConfirmation from '../../util/DeleteConfirmation';
-import {UserRole, VehicleData, FuelTypes, Transmissions, AvailabilityStatuses, ImageType } from '../../util/Enum';
+import { UserRole, VehicleData, FuelTypes, Transmissions, AvailabilityStatuses, ImageType } from '../../util/Enum';
 import ImageUpload from '../../util/ImageUpload';
 import { uploadImage } from '../../util/Util';
 
@@ -38,6 +38,9 @@ const TransportService = () => {
         mileage: 0,
         location: '',
         licensePlate: '',
+        provinceId: 0,
+        districtId: 0,
+        communeId: 0,
         isDeleted: false
     });
     const [toasts, setToasts] = useState([]);
@@ -51,12 +54,56 @@ const TransportService = () => {
     const [images, setImages] = useState([]);
     const [editingImage, setEditingImage] = useState(null);
     const [newImage, setNewImage] = useState({ id: 0, url: '', description: '' });
-
+    const [provinces, setProvinces] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [communes, setCommunes] = useState([]);
 
     useEffect(() => {
         fetchServices();
         fetchUsers();
+        fetchDistricts();
+        fetchCommunes();
+        fetchProvinces();
     }, [refresh]);
+
+    const fetchProvinces = async () => {
+        const filter = {
+            filters: [
+            ],
+            includes: [
+                "Districts",
+                "Districts.Communes"
+            ],
+            logic: "string",
+            pageSize: 0,
+            pageNumber: 0,
+            all: true
+        }
+        fetchFilteredData('/Provinces', filter).then(response => {
+            setProvinces(response);
+        })
+            .catch(error => {
+                console.error('There was an error fetching the provinces!', error);
+            });
+    };
+
+    const fetchDistricts = async () => {
+        fetchData('/Districts').then(response => {
+            setDistricts(response);
+        })
+            .catch(error => {
+                console.error('There was an error fetching the districts!', error);
+            });
+    };
+
+    const fetchCommunes = async () => {
+        fetchData('/Communes').then(response => {
+            setCommunes(response);
+        })
+            .catch(error => {
+                console.error('There was an error fetching the communes!', error);
+            });
+    };
 
     const fetchServices = async () => {
         setFetching(true);
@@ -72,10 +119,10 @@ const TransportService = () => {
             setServices(response);
             setFetching(false);
         })
-        .catch(error => {
-            console.error('There was an error fetching the services!', error);
-            setFetching(false);
-        });
+            .catch(error => {
+                console.error('There was an error fetching the services!', error);
+                setFetching(false);
+            });
     };
 
     const fetchUsers = async () => {
@@ -94,9 +141,9 @@ const TransportService = () => {
         fetchFilteredData('/Users', filter).then(response => {
             setUsers(response);
         })
-        .catch(error => {
-            console.error('There was an error fetching the users!', error);
-        });
+            .catch(error => {
+                console.error('There was an error fetching the users!', error);
+            });
     };
 
     const handleAddService = () => {
@@ -116,6 +163,9 @@ const TransportService = () => {
             mileage: 0,
             location: '',
             licensePlate: '',
+            provinceId: 0,
+            districtId: 0,
+            communeId: 0,
             isDeleted: false
         });
         setShowPopup(true);
@@ -138,6 +188,14 @@ const TransportService = () => {
             ...prevState,
             [name]: type === 'checkbox' ? checked : value
         }));
+
+        if (name === 'provinceId') {
+            handleProvinceChange(value);
+        }
+
+        if(name === 'districtId') {
+            handleDistrictChange(value);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -274,9 +332,25 @@ const TransportService = () => {
                 setRefresh(!refresh);
             });
         }
-        setLoading(false);        
+        setLoading(false);
         setShowImageSubPopup(false);
         handleClosePopup();
+    };
+
+    const handleProvinceChange = (provinceId) => {
+        const province = provinces.find(p => p.id === parseInt(provinceId));
+        if (province) {
+            setSelectedProvince(province);
+            setDistricts(province.districts);
+            setCommunes([]); // Reset communes when province changes
+        }
+    };
+
+    const handleDistrictChange = (districtId) => {
+        const district = districts.find(d => d.id === parseInt(districtId));
+        if (district) {
+            setCommunes(district.communes);
+        }
     };
 
     return (
@@ -323,6 +397,9 @@ const TransportService = () => {
                                             <th>Location</th>
                                             <th>License Plate</th>
                                             <th>Status</th>
+                                            <th>Province</th>
+                                            <th>District</th>
+                                            <th>Commune</th>
                                             <th style={{ width: '13%' }}>Actions</th>
                                         </tr>
                                     </thead>
@@ -343,6 +420,9 @@ const TransportService = () => {
                                                 <td>{service.mileage}</td>
                                                 <td>{service.location}</td>
                                                 <td>{service.licensePlate}</td>
+                                                <td>{provinces.find(p => p.id === restaurant.provinceId)?.name || 'Unknown'}</td>
+                                                <td>{districts.find(d => d.id === restaurant.districtId)?.name || 'Unknown'}</td>
+                                                <td>{communes.find(c => c.id === restaurant.communeId)?.name || 'Unknown'}</td>
                                                 <td>
                                                     <CBadge color={getStatusBadge(service.isDeleted)}>
                                                         {getStatusText(service.isDeleted)}
@@ -382,7 +462,7 @@ const TransportService = () => {
                                 ))}
                             </CFormSelect>
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="make">Make</CFormLabel>
                             <CFormSelect id="make" name="make" value={newService.make} onChange={handleChange} required disabled={loading}>
@@ -392,7 +472,7 @@ const TransportService = () => {
                                 ))}
                             </CFormSelect>
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="model">Model</CFormLabel>
                             <CFormSelect id="model" name="model" value={newService.model} onChange={handleChange} required disabled={loading}>
@@ -402,17 +482,17 @@ const TransportService = () => {
                                 ))}
                             </CFormSelect>
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="year">Year</CFormLabel>
                             <CFormInput type="number" id="year" name="year" value={newService.year} onChange={handleChange} required disabled={loading} />
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="color">Color</CFormLabel>
                             <CFormInput type="text" id="color" name="color" value={newService.color} onChange={handleChange} required disabled={loading} />
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="fuelType">Fuel Type</CFormLabel>
                             <CFormSelect id="fuelType" name="fuelType" value={newService.fuelType} onChange={handleChange} required disabled={loading}>
@@ -422,7 +502,7 @@ const TransportService = () => {
                                 ))}
                             </CFormSelect>
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="transmission">Transmission</CFormLabel>
                             <CFormSelect id="transmission" name="transmission" value={newService.transmission} onChange={handleChange} required disabled={loading}>
@@ -432,17 +512,17 @@ const TransportService = () => {
                                 ))}
                             </CFormSelect>
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="seatingCapacity">Seating Capacity</CFormLabel>
                             <CFormInput type="number" id="seatingCapacity" name="seatingCapacity" value={newService.seatingCapacity} onChange={handleChange} required disabled={loading} />
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="rentalPricePerDay">Rental Price Per Day</CFormLabel>
                             <CFormInput type="number" id="rentalPricePerDay" name="rentalPricePerDay" value={newService.rentalPricePerDay} onChange={handleChange} required disabled={loading} />
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="availabilityStatus">Availability Status</CFormLabel>
                             <CFormSelect id="availabilityStatus" name="availabilityStatus" value={newService.availabilityStatus} onChange={handleChange} required disabled={loading}>
@@ -452,26 +532,56 @@ const TransportService = () => {
                                 ))}
                             </CFormSelect>
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="mileage">Mileage</CFormLabel>
                             <CFormInput type="number" id="mileage" name="mileage" value={newService.mileage} onChange={handleChange} required disabled={loading} />
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="location">Location</CFormLabel>
                             <CFormInput type="text" id="location" name="location" value={newService.location} onChange={handleChange} required disabled={loading} />
                         </div>
-                        
+
                         <div className="mb-3">
                             <CFormLabel htmlFor="licensePlate">License Plate</CFormLabel>
                             <CFormInput type="text" id="licensePlate" name="licensePlate" value={newService.licensePlate} onChange={handleChange} required disabled={loading} />
                         </div>
-                        
+
+                        <div className="mb-3">
+                            <CFormLabel htmlFor="provinceId">Province</CFormLabel>
+                            <CFormSelect id="provinceId" name="provinceId" value={newRestaurant.provinceId} onChange={handleChange} required disabled={loading}>
+                                <option value="">Select Province</option>
+                                {provinces.map(province => (
+                                    <option key={province.id} value={province.id}>{province.name}</option>
+                                ))}
+                            </CFormSelect>
+                        </div>
+
+                        <div className="mb-3">
+                            <CFormLabel htmlFor="districtId">District</CFormLabel>
+                            <CFormSelect id="districtId" name="districtId" value={newRestaurant.districtId} onChange={handleChange} required disabled={loading}>
+                                <option value="">Select District</option>
+                                {districts.map(district => (
+                                    <option key={district.id} value={district.id}>{district.name}</option>
+                                ))}
+                            </CFormSelect>
+                        </div>
+
+                        <div className="mb-3">
+                            <CFormLabel htmlFor="communeId">Commune</CFormLabel>
+                            <CFormSelect id="communeId" name="communeId" value={newRestaurant.communeId} onChange={handleChange} required disabled={loading}>
+                                <option value="">Select Commune</option>
+                                {communes.map(commune => (
+                                    <option key={commune.id} value={commune.id}>{commune.name}</option>
+                                ))}
+                            </CFormSelect>
+                        </div>
+
                         <div className="mb-3">
                             <CFormCheck id="isDeleted" name="isDeleted" checked={newService.isDeleted} onChange={handleChange} label="Is Deleted" disabled={loading} />
                         </div>
-                        
+
                         <CModalFooter className="d-flex justify-content-end">
                             <CButton color="primary" type="submit" disabled={loading}>
                                 {loading ? <CSpinner size="sm" /> : (editingService ? 'Save Changes' : 'Add Transport Service')}
