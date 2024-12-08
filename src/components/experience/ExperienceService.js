@@ -562,7 +562,7 @@ const Activities = () => {
 
                         <div className="mb-3">
                             <CFormLabel htmlFor="provinceId">Province</CFormLabel>
-                            <CFormSelect id="provinceId" name="provinceId" value={newRestaurant.provinceId} onChange={handleChange} required disabled={loading}>
+                            <CFormSelect id="provinceId" name="provinceId" value={newActivity.provinceId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Province</option>
                                 {provinces.map(province => (
                                     <option key={province.id} value={province.id}>{province.name}</option>
@@ -572,7 +572,7 @@ const Activities = () => {
 
                         <div className="mb-3">
                             <CFormLabel htmlFor="districtId">District</CFormLabel>
-                            <CFormSelect id="districtId" name="districtId" value={newRestaurant.districtId} onChange={handleChange} required disabled={loading}>
+                            <CFormSelect id="districtId" name="districtId" value={newActivity.districtId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select District</option>
                                 {districts.map(district => (
                                     <option key={district.id} value={district.id}>{district.name}</option>
@@ -582,7 +582,7 @@ const Activities = () => {
 
                         <div className="mb-3">
                             <CFormLabel htmlFor="communeId">Commune</CFormLabel>
-                            <CFormSelect id="communeId" name="communeId" value={newRestaurant.communeId} onChange={handleChange} required disabled={loading}>
+                            <CFormSelect id="communeId" name="communeId" value={newActivity.communeId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Commune</option>
                                 {communes.map(commune => (
                                     <option key={commune.id} value={commune.id}>{commune.name}</option>
