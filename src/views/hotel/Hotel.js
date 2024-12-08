@@ -45,6 +45,8 @@ const Hotel = () => {
     const [loading, setLoading] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const [fetching, setFetching] = useState(false);
+    const [selectedProvince, setSelectedProvince] = useState(null);
+
 
     useEffect(() => {
         fetchHotels();
@@ -88,7 +90,19 @@ const Hotel = () => {
     };
 
     const fetchProvinces = async () => {
-        fetchData('/Provinces').then(response => {
+        const filter = {
+            filters: [
+            ],
+            includes: [
+                "Districts",
+                "Districts.Communes"
+            ],
+            logic: "string",
+            pageSize: 0,
+            pageNumber: 0,
+            all: true
+        }
+        fetchFilteredData('/Provinces', filter).then(response => {
             setProvinces(response);
         })
             .catch(error => {
@@ -149,6 +163,30 @@ const Hotel = () => {
             ...prevState,
             [name]: type === 'checkbox' ? checked : value
         }));
+
+        if (name === 'provinceId') {
+            handleProvinceChange(value);
+        }
+
+        if(name === 'districtId') {
+            handleDistrictChange(value);
+        }
+    };
+
+    const handleProvinceChange = (provinceId) => {
+        const province = provinces.find(p => p.id === parseInt(provinceId));
+        if (province) {
+            setSelectedProvince(province);
+            setDistricts(province.districts);
+            setCommunes([]); // Reset communes when province changes
+        }
+    };
+    
+    const handleDistrictChange = (districtId) => {
+        const district = districts.find(d => d.id === parseInt(districtId));
+        if (district) {
+            setCommunes(district.communes);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -233,18 +271,17 @@ const Hotel = () => {
                             <table className="table table-hover table-striped table-bordered text-center">
                                 <thead>
                                     <tr>
-                                        {/* <th>Image</th>? */}
                                         <th>ID</th>
-                                        <th>Owner ID</th>
+                                        <th>Owner</th>
                                         <th>Name</th>
                                         <th>Address</th>
                                         <th>Phone Number</th>
                                         <th>Email</th>
                                         <th>Description</th>
                                         <th>Star Rating</th>
-                                        <th>Province ID</th>
-                                        <th>District ID</th>
-                                        <th>Commune ID</th>
+                                        <th>Province</th>
+                                        <th>District</th>
+                                        <th>Commune</th>
                                         <th>Status</th>
                                         <th style={{ width: '130px' }}>Actions</th>
                                     </tr>
@@ -252,18 +289,17 @@ const Hotel = () => {
                                 <tbody>
                                     {hotels.map(hotel => (
                                         <tr key={hotel.id}>
-                                            {/* <td><img src={hotel.image} alt={hotel.name} className="img-fluid mx-auto d-block" width="50" height="50" /></td> */}
                                             <td>{hotel.id}</td>
-                                            <td>{hotel.ownerId}</td>
+                                            <td>{users.find(user => user.id === hotel.ownerId)?.username || 'N/A'}</td>
                                             <td>{hotel.name}</td>
                                             <td>{hotel.address}</td>
                                             <td>{hotel.phoneNumber}</td>
                                             <td>{hotel.email}</td>
                                             <td>{hotel.description}</td>
                                             <td>{hotel.starRating}</td>
-                                            <td>{hotel.provinceId}</td>
-                                            <td>{hotel.districtId}</td>
-                                            <td>{hotel.communeId}</td>
+                                            <td>{provinces.find(province => province.id === hotel.provinceId)?.name || 'N/A'}</td>
+                                            <td>{districts.find(district => district.id === hotel.districtId)?.name || 'N/A'}</td>
+                                            <td>{communes.find(commune => commune.id === hotel.communeId)?.name || 'N/A'}</td>
                                             <td>
                                                 <CBadge color={getStatusBadge(hotel.isDeleted)}>
                                                     {getStatusText(hotel.isDeleted)}

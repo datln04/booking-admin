@@ -57,6 +57,8 @@ const Restaurant = () => {
     const [editingImage, setEditingImage] = useState(null);
     const [newImage, setNewImage] = useState({ id: 0, url: '', description: '' });
 
+    const [selectedProvince, setSelectedProvince] = useState(null);
+
     useEffect(() => {
         fetchRestaurants();
         fetchUsers();
@@ -117,7 +119,19 @@ const Restaurant = () => {
     };
 
     const fetchProvinces = async () => {
-        fetchData('/Provinces').then(response => {
+        const filter = {
+            filters: [
+            ],
+            includes: [
+                "Districts",
+                "Districts.Communes"
+            ],
+            logic: "string",
+            pageSize: 0,
+            pageNumber: 0,
+            all: true
+        }
+        fetchFilteredData('/Provinces', filter).then(response => {
             setProvinces(response);
         })
             .catch(error => {
@@ -191,6 +205,14 @@ const Restaurant = () => {
             ...prevState,
             [name]: type === 'checkbox' ? checked : value
         }));
+
+        if (name === 'provinceId') {
+            handleProvinceChange(value);
+        }
+
+        if(name === 'districtId') {
+            handleDistrictChange(value);
+        }
     };
 
     const handleDateTimeRangeChange = (value) => {
@@ -204,21 +226,22 @@ const Restaurant = () => {
         e.preventDefault();
         setLoading(true);
         let openingHoursString;
-        if (editingRestaurant) {
-            // Parse the time strings into Date objects
-            const openingHoursStart = new Date();
-            const openingHoursEnd = new Date();
-            const [startHour, startMinute] = newRestaurant.openingHours[0].split(':');
-            const [endHour, endMinute] = newRestaurant.openingHours[1].split(':');
-            openingHoursStart.setHours(startHour, startMinute);
-            openingHoursEnd.setHours(endHour, endMinute);
+        // Parse the time strings into Date objects
+        const openingHoursStart = new Date();
+        const openingHoursEnd = new Date();
+        const [startHour, startMinute] = newRestaurant.openingHours[0].split(':');
+        const [endHour, endMinute] = newRestaurant.openingHours[1].split(':');
+        openingHoursStart.setHours(startHour, startMinute);
+        openingHoursEnd.setHours(endHour, endMinute);
+        // if (editingRestaurant) {
+        //     // Merge openingHours into a string
+        //     openingHoursString = `${openingHoursStart.getHours()}h - ${openingHoursEnd.getHours()}h`;
+        // } else {
+        //     // Merge openingHours into a string
+        //     openingHoursString = `${newRestaurant.openingHours[0].getHours()}h - ${newRestaurant.openingHours[1].getHours()}h`;
+        // }
+        openingHoursString = `${openingHoursStart.getHours()}h - ${openingHoursEnd.getHours()}h`;
 
-            // Merge openingHours into a string
-            openingHoursString = `${openingHoursStart.getHours()}h - ${openingHoursEnd.getHours()}h`;
-        } else {
-            // Merge openingHours into a string
-            openingHoursString = `${newRestaurant.openingHours[0].getHours()}h - ${newRestaurant.openingHours[1].getHours()}h`;
-        }
 
         const restaurantToSave = {
             ...newRestaurant,
@@ -357,6 +380,22 @@ const Restaurant = () => {
         handleClosePopup();
     };
 
+    const handleProvinceChange = (provinceId) => {
+        const province = provinces.find(p => p.id === parseInt(provinceId));
+        if (province) {
+            setSelectedProvince(province);
+            setDistricts(province.districts);
+            setCommunes([]); // Reset communes when province changes
+        }
+    };
+    
+    const handleDistrictChange = (districtId) => {
+        const district = districts.find(d => d.id === parseInt(districtId));
+        if (district) {
+            setCommunes(district.communes);
+        }
+    };
+    
     return (
         <CRow>
             <CToaster position="top-center">
