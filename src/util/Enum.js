@@ -76,3 +76,22 @@ export const ImageType = [
     { key: 'THUMBNAIL', value: 'Thumbnail' },
 ]
 
+export const ServiceType = {
+    HOTEL: 'Hotel',
+    RESTAURANT: 'Restaurant',
+    TRANSPORT: 'Transport Service',
+    EXPERIENCE: 'Experience Service',
+    // Add other service types here
+};
+
+export const PaymentStatus = {
+    PAID: 'Paid',
+    UNPAID: 'Unpaid',
+    // Add other payment statuses here
+};
+
+export const BookingStatus = {
+    CONFIRMED: 'Confirmed',
+    PENDING: 'Pending',
+    // Add other booking statuses here
+};

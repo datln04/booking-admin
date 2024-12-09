@@ -122,11 +122,11 @@ const User = () => {
         handleClosePopup();
 
         if (editingUser) {
-            updateData(`/Users/${editingUser.id}`, userToSave).then(() => {
+            updateData(`/Users/updateUser`, userToSave).then(() => {
                 setRefresh(!refresh);
             });
         } else {
-            createData('/Users', userToSave).then(() => {
+            createData('/Users/registerForAdmin', userToSave).then(() => {
                 setRefresh(!refresh);
             });
         }

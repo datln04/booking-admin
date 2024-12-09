@@ -4,6 +4,7 @@ import { CContainer, CSpinner } from '@coreui/react'
 
 // routes config
 import routes from '../routes'
+import PrivateRoute from '../util/PrivateRoute'
 
 const AppContent = () => {
   return (
@@ -18,8 +19,12 @@ const AppContent = () => {
                   path={route.path}
                   exact={route.exact}
                   name={route.name}
-                  element={<route.element />}
-                />
+                  element={
+                    <PrivateRoute
+                      element={route.element}
+                      roles={route.roles} // Pass the roles to PrivateRoute
+                    />
+                  }                />
               )
             )
           })}

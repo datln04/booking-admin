@@ -2,6 +2,7 @@ import {
   cilBuilding,
   cilCarAlt,
   cilMap,
+  cilMoney,
   cilRestaurant,
   cilSpeedometer,
   cilStar,
@@ -26,6 +27,12 @@ const _nav = [
     component: CNavTitle,
     name: 'Management',
   },
+  // {
+  //   component: CNavItem,
+  //   name: 'Booking Management',
+  //   to: '/booking-management',
+  //   icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
+  // },
   {
     component: CNavItem,
     name: 'User Management',
@@ -149,41 +156,15 @@ const _nav = [
       },
       {
         component: CNavItem,
+        name: 'Table',
+        to: '/tables',
+      },
+      {
+        component: CNavItem,
         name: 'Cusines',
         to: '/cusines',
       },
     ]
-  },
-  {
-    component: CNavTitle,
-    name: 'Extras',
-  },
-  {
-    component: CNavGroup,
-    name: 'Pages',
-    icon: <CIcon icon={cilStar} customClassName="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Login',
-        to: '/login',
-      },
-      {
-        component: CNavItem,
-        name: 'Register',
-        to: '/register',
-      },
-      {
-        component: CNavItem,
-        name: 'Error 404',
-        to: '/404',
-      },
-      {
-        component: CNavItem,
-        name: 'Error 500',
-        to: '/500',
-      },
-    ],
   },
 ]
 
