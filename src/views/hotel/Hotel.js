@@ -47,6 +47,9 @@ const Hotel = () => {
     const [fetching, setFetching] = useState(false);
     const [selectedProvince, setSelectedProvince] = useState(null);
 
+    const [subDistricts, setSubDistricts] = useState([]);
+    const [subCommunes, setSubCommunes] = useState([]);
+
 
     useEffect(() => {
         fetchHotels();
@@ -120,11 +123,22 @@ const Hotel = () => {
     };
 
     const fetchCommunes = async () => {
-        fetchData('/Communes').then(response => {
-            setCommunes(response);
+        const filter = {
+            filters: [
+            ],
+            includes: [
+                "Communes"
+            ],
+            logic: "string",
+            pageSize: 0,
+            pageNumber: 0,
+            all: true
+        }
+        fetchFilteredData('/Districts', filter).then(response => {
+            setDistricts(response);
         })
             .catch(error => {
-                console.error('There was an error fetching the communes!', error);
+                console.error('There was an error fetching the districts!', error);
             });
     };
 
@@ -149,6 +163,9 @@ const Hotel = () => {
 
     const handleEditHotel = (hotel) => {
         setEditingHotel(hotel);
+        const province = provinces?.find(province => province?.id === restaurant?.provinceId);
+        setSubDistricts(province.districts);
+        setSubCommunes(restaurant ? province?.districts?.find(d => restaurant?.districtId === d.id)?.communes : []); // Reset communes when province changes
         setNewHotel(hotel);
         setShowPopup(true);
     };
@@ -168,7 +185,7 @@ const Hotel = () => {
             handleProvinceChange(value);
         }
 
-        if(name === 'districtId') {
+        if (name === 'districtId') {
             handleDistrictChange(value);
         }
     };
@@ -177,15 +194,15 @@ const Hotel = () => {
         const province = provinces.find(p => p.id === parseInt(provinceId));
         if (province) {
             setSelectedProvince(province);
-            setDistricts(province.districts);
-            setCommunes([]); // Reset communes when province changes
+            setSubDistricts(province.districts);
+            setSubCommunes([]);
         }
     };
-    
+
     const handleDistrictChange = (districtId) => {
         const district = districts.find(d => d.id === parseInt(districtId));
         if (district) {
-            setCommunes(district.communes);
+            setSubCommunes(district.communes);
         }
     };
 
@@ -364,7 +381,7 @@ const Hotel = () => {
                             <CFormSelect id="provinceId" name="provinceId" value={newHotel.provinceId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Province</option>
                                 {provinces.map(province => (
-                                    <option key={province.id} value={province.id}>{province.name}</option>
+                                    <option key={province.id} value={province.id} selected={editingRestaurant && editingRestaurant?.provinceId === province.id}>{province.name}</option>
                                 ))}
                             </CFormSelect>
                         </div>
@@ -373,8 +390,8 @@ const Hotel = () => {
                             <CFormLabel htmlFor="districtId">District</CFormLabel>
                             <CFormSelect id="districtId" name="districtId" value={newHotel.districtId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select District</option>
-                                {districts.map(district => (
-                                    <option key={district.id} value={district.id}>{district.name}</option>
+                                {subDistricts && subDistricts?.length > 0 && subDistricts.map(district => (
+                                    <option key={district.id} value={district.id} selected={editingRestaurant && editingRestaurant?.districtId === district.id}>{district.name}</option>
                                 ))}
                             </CFormSelect>
                         </div>
@@ -383,8 +400,8 @@ const Hotel = () => {
                             <CFormLabel htmlFor="communeId">Commune</CFormLabel>
                             <CFormSelect id="communeId" name="communeId" value={newHotel.communeId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Commune</option>
-                                {communes.map(commune => (
-                                    <option key={commune.id} value={commune.id}>{commune.name}</option>
+                                {subCommunes && subCommunes?.length > 0 && subCommunes.map(commune => (
+                                    <option key={commune.id} value={commune.id} selected={editingRestaurant && editingRestaurant?.communeId === commune.id}>{commune.name}</option>
                                 ))}
                             </CFormSelect>
                         </div>
