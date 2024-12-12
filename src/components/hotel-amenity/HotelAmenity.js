@@ -161,7 +161,7 @@ const HotelAmenity = () => {
                     setToasts([...toasts, { type: 'success', message: 'Amenity updated successfully!' }]);
                     setRefresh(!refresh);
                 } catch (error) {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 } finally {
                     setLoading(false);
                     setNewAmenity(null);
@@ -179,7 +179,7 @@ const HotelAmenity = () => {
                         setRefresh(!refresh);
                         setToasts([...toasts, { type: 'success', message: 'Amenity updated successfully!' }]);
                     }).catch(error => {
-                        setToasts([...toasts, { type: 'danger', message: error.message }]);
+                        setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                     });
                 });
 
@@ -188,7 +188,7 @@ const HotelAmenity = () => {
                     setToasts([...toasts, { type: 'success', message: 'Amenity updated successfully!' }]);
                     setRefresh(!refresh);
                 } catch (error) {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 } finally {
                     setLoading(false);
                     handleClosePopup();
@@ -213,7 +213,7 @@ const HotelAmenity = () => {
                 setToasts([...toasts, { type: 'success', message: editingAmenity ? 'Amenity updated successfully!' : 'Amenity created successfully!' }]);
                 setRefresh(!refresh);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             } finally {
                 setLoading(false);
                 handleClosePopup();
@@ -234,7 +234,7 @@ const HotelAmenity = () => {
                     setToasts([...toasts, { type: 'success', message: 'Amenity deleted successfully!' }]);
 
                 }).catch(error => {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 });
             });
 
@@ -243,7 +243,7 @@ const HotelAmenity = () => {
                 setToasts([...toasts, { type: 'success', message: 'Amenity deleted successfully!' }]);
                 setRefresh(!refresh);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             } finally {
                 setLoading(false);
                 handleClosePopup();

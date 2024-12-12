@@ -140,7 +140,7 @@ const RestaurantDietaries = () => {
                     setToasts([...toasts, { type: 'success', message: 'Dietary updated successfully!' }]);
                     setRefresh(!refresh);
                 } catch (error) {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 } finally {
                     setLoading(false);
                     setNewDietary(null);
@@ -154,7 +154,7 @@ const RestaurantDietaries = () => {
                         setRefresh(!refresh);
                         setToasts([...toasts, { type: 'success', message: 'Dietary updated successfully!' }]);
                     }).catch(error => {
-                        setToasts([...toasts, { type: 'danger', message: error.message }]);
+                        setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                     });
                 });
 
@@ -163,7 +163,7 @@ const RestaurantDietaries = () => {
                     setToasts([...toasts, { type: 'success', message: 'Dietary updated successfully!' }]);
                     setRefresh(!refresh);
                 } catch (error) {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 } finally {
                     setLoading(false);
                     handleClosePopup();
@@ -188,7 +188,7 @@ const RestaurantDietaries = () => {
                 setToasts([...toasts, { type: 'success', message: editingDietary ? 'Dietary updated successfully!' : 'Dietary created successfully!' }]);
                 setRefresh(!refresh);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             } finally {
                 setLoading(false);
                 handleClosePopup();
@@ -209,7 +209,7 @@ const RestaurantDietaries = () => {
                     setToasts([...toasts, { type: 'success', message: 'Dietary deleted successfully!' }]);
 
                 }).catch(error => {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 });
             });
 
@@ -218,7 +218,7 @@ const RestaurantDietaries = () => {
                 setToasts([...toasts, { type: 'success', message: 'Dietary deleted successfully!' }]);
                 setRefresh(!refresh);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             } finally {
                 setLoading(false);
                 handleClosePopup();

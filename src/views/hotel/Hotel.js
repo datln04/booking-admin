@@ -7,6 +7,7 @@ import { uploadImage } from '../../util/Util';
 import ImageUpload from '../../util/ImageUpload';
 import DeleteConfirmation from '../../util/DeleteConfirmation';
 import { UserRole } from '../../util/Enum';
+import './Hotel.scss'
 
 const getStatusBadge = (isDeleted) => {
     return isDeleted ? 'danger' : 'success';
@@ -49,7 +50,6 @@ const Hotel = () => {
 
     const [subDistricts, setSubDistricts] = useState([]);
     const [subCommunes, setSubCommunes] = useState([]);
-
 
     useEffect(() => {
         fetchHotels();
@@ -114,7 +114,18 @@ const Hotel = () => {
     };
 
     const fetchDistricts = async () => {
-        fetchData('/Districts').then(response => {
+        const filter = {
+            filters: [
+            ],
+            includes: [
+                "Communes"
+            ],
+            logic: "string",
+            pageSize: 0,
+            pageNumber: 0,
+            all: true
+        }
+        fetchFilteredData('/Districts', filter).then(response => {
             setDistricts(response);
         })
             .catch(error => {
@@ -134,11 +145,11 @@ const Hotel = () => {
             pageNumber: 0,
             all: true
         }
-        fetchFilteredData('/Districts', filter).then(response => {
-            setDistricts(response);
+        fetchData('/Communes').then(response => {
+            setCommunes(response);
         })
             .catch(error => {
-                console.error('There was an error fetching the districts!', error);
+                console.error('There was an error fetching the Communes!', error);
             });
     };
 
@@ -163,9 +174,9 @@ const Hotel = () => {
 
     const handleEditHotel = (hotel) => {
         setEditingHotel(hotel);
-        const province = provinces?.find(province => province?.id === restaurant?.provinceId);
+        const province = provinces?.find(province => province?.id === hotel?.provinceId);
         setSubDistricts(province.districts);
-        setSubCommunes(restaurant ? province?.districts?.find(d => restaurant?.districtId === d.id)?.communes : []); // Reset communes when province changes
+        setSubCommunes(hotel ? province?.districts?.find(d => hotel?.districtId === d.id)?.communes : []); // Reset communes when province changes
         setNewHotel(hotel);
         setShowPopup(true);
     };
@@ -217,7 +228,7 @@ const Hotel = () => {
                 imageUrl = await uploadImage(formData, image);
                 setToasts([...toasts, { type: 'success', message: 'Image uploaded successfully!' }]);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 setLoading(false);
                 return;
             }
@@ -254,7 +265,7 @@ const Hotel = () => {
             setShowDeleteConfirm(false);
             setHotelToDelete(null);
         }).catch(error => {
-            setToasts([...toasts, { type: 'danger', message: error.message }]);
+            setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             setShowDeleteConfirm(false);
             setHotelToDelete(null);
         });
@@ -285,55 +296,65 @@ const Hotel = () => {
                                 <CSpinner color="primary" />
                             </div>
                         ) : (
-                            <table className="table table-hover table-striped table-bordered text-center">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Owner</th>
-                                        <th>Name</th>
-                                        <th>Address</th>
-                                        <th>Phone Number</th>
-                                        <th>Email</th>
-                                        <th>Description</th>
-                                        <th>Star Rating</th>
-                                        <th>Province</th>
-                                        <th>District</th>
-                                        <th>Commune</th>
-                                        <th>Status</th>
-                                        <th style={{ width: '130px' }}>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {hotels.map(hotel => (
-                                        <tr key={hotel.id}>
-                                            <td>{hotel.id}</td>
-                                            <td>{users.find(user => user.id === hotel.ownerId)?.username || 'N/A'}</td>
-                                            <td>{hotel.name}</td>
-                                            <td>{hotel.address}</td>
-                                            <td>{hotel.phoneNumber}</td>
-                                            <td>{hotel.email}</td>
-                                            <td>{hotel.description}</td>
-                                            <td>{hotel.starRating}</td>
-                                            <td>{provinces.find(province => province.id === hotel.provinceId)?.name || 'N/A'}</td>
-                                            <td>{districts.find(district => district.id === hotel.districtId)?.name || 'N/A'}</td>
-                                            <td>{communes.find(commune => commune.id === hotel.communeId)?.name || 'N/A'}</td>
-                                            <td>
-                                                <CBadge color={getStatusBadge(hotel.isDeleted)}>
-                                                    {getStatusText(hotel.isDeleted)}
-                                                </CBadge>
-                                            </td>
-                                            <td>
-                                                <CButton className='mx-2' color="info" size="sm" onClick={() => handleEditHotel(hotel)}>
-                                                    <CIcon icon={cilPencil} />
-                                                </CButton>
-                                                <CButton color="danger" size="sm" onClick={() => handleDeleteHotel(hotel.id)}>
-                                                    <CIcon icon={cilTrash} />
-                                                </CButton>
-                                            </td>
+                            <div className='table-responsive'>
+                                <table className="table table-hover table-striped table-bordered text-center">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Owner</th>
+                                            <th>Name</th>
+                                            <th>Address</th>
+                                            <th>Phone Number</th>
+                                            <th>Email</th>
+                                            <th>Description</th>
+                                            <th>Star Rating</th>
+                                            <th>Province</th>
+                                            <th>District</th>
+                                            <th>Commune</th>
+                                            <th>Status</th>
+                                            <th style={{ width: '200px' }}>Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {hotels.map(hotel => (
+                                            <tr key={hotel.id}>
+                                                <td data-fulltext={hotel.id}>{hotel.id}</td>
+                                            <td data-fulltext={users.find(user => user.id === hotel.ownerId)?.username || 'N/A'}>
+                                                {users.find(user => user.id === hotel.ownerId)?.username || 'N/A'}
+                                            </td>
+                                            <td data-fulltext={hotel.name}>{hotel.name}</td>
+                                            <td data-fulltext={hotel.address}>{hotel.address}</td>
+                                            <td data-fulltext={hotel.phoneNumber}>{hotel.phoneNumber}</td>
+                                            <td data-fulltext={hotel.email}>{hotel.email}</td>
+                                            <td data-fulltext={hotel.description}>{hotel.description}</td>
+                                            <td data-fulltext={hotel.starRating}>{hotel.starRating}</td>
+                                            <td data-fulltext={provinces.find(province => province.id === hotel.provinceId)?.name || 'N/A'}>
+                                                {provinces.find(province => province.id === hotel.provinceId)?.name || 'N/A'}
+                                            </td>
+                                            <td data-fulltext={districts.find(district => district.id === hotel.districtId)?.name || 'N/A'}>
+                                                {districts.find(district => district.id === hotel.districtId)?.name || 'N/A'}
+                                            </td>
+                                            <td data-fulltext={communes.find(commune => commune.id === hotel.communeId)?.name || 'N/A'}>
+                                                {communes.find(commune => commune.id === hotel.communeId)?.name || 'N/A'}
+                                            </td>
+                                                <td>
+                                                    <CBadge color={getStatusBadge(hotel.isDeleted)}>
+                                                        {getStatusText(hotel.isDeleted)}
+                                                    </CBadge>
+                                                </td>
+                                                <td>
+                                                    <CButton className='mx-2' color="info" size="sm" onClick={() => handleEditHotel(hotel)}>
+                                                        <CIcon icon={cilPencil} />
+                                                    </CButton>
+                                                    <CButton color="danger" size="sm" onClick={() => handleDeleteHotel(hotel.id)}>
+                                                        <CIcon icon={cilTrash} />
+                                                    </CButton>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
                     </CCardBody>
                 </CCard>
@@ -381,7 +402,7 @@ const Hotel = () => {
                             <CFormSelect id="provinceId" name="provinceId" value={newHotel.provinceId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Province</option>
                                 {provinces.map(province => (
-                                    <option key={province.id} value={province.id} selected={editingRestaurant && editingRestaurant?.provinceId === province.id}>{province.name}</option>
+                                    <option key={province.id} value={province.id} selected={editingHotel && editingHotel?.provinceId === province.id}>{province.name}</option>
                                 ))}
                             </CFormSelect>
                         </div>
@@ -391,7 +412,7 @@ const Hotel = () => {
                             <CFormSelect id="districtId" name="districtId" value={newHotel.districtId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select District</option>
                                 {subDistricts && subDistricts?.length > 0 && subDistricts.map(district => (
-                                    <option key={district.id} value={district.id} selected={editingRestaurant && editingRestaurant?.districtId === district.id}>{district.name}</option>
+                                    <option key={district.id} value={district.id} selected={editingHotel && editingHotel?.districtId === district.id}>{district.name}</option>
                                 ))}
                             </CFormSelect>
                         </div>
@@ -401,14 +422,14 @@ const Hotel = () => {
                             <CFormSelect id="communeId" name="communeId" value={newHotel.communeId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Commune</option>
                                 {subCommunes && subCommunes?.length > 0 && subCommunes.map(commune => (
-                                    <option key={commune.id} value={commune.id} selected={editingRestaurant && editingRestaurant?.communeId === commune.id}>{commune.name}</option>
+                                    <option key={commune.id} value={commune.id} selected={editingHotel && editingHotel?.communeId === commune.id}>{commune.name}</option>
                                 ))}
                             </CFormSelect>
                         </div>
-                        <div className="mb-3">
+                        {/* <div className="mb-3">
                             <CFormLabel htmlFor="image">Image URL</CFormLabel>
                             <ImageUpload setImage={setImage} imageUrl={editingHotel ? editingHotel.image : null} />
-                        </div>
+                        </div> */}
                         <div className="mb-3">
                             <CFormCheck id="isDeleted" name="isDeleted" checked={newHotel.isDeleted} onChange={handleChange} label="Is Deleted" disabled={loading} />
                         </div>

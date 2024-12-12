@@ -63,6 +63,9 @@ const Activities = () => {
     const [districts, setDistricts] = useState([]);
     const [communes, setCommunes] = useState([]);
 
+    const [subDistricts, setSubDistricts] = useState([]);
+    const [subCommunes, setSubCommunes] = useState([]);
+
     const fetchProvinces = async () => {
         const filter = {
             filters: [
@@ -85,7 +88,18 @@ const Activities = () => {
     };
 
     const fetchDistricts = async () => {
-        fetchData('/Districts').then(response => {
+        const filter = {
+            filters: [
+            ],
+            includes: [
+                "Communes"
+            ],
+            logic: "string",
+            pageSize: 0,
+            pageNumber: 0,
+            all: true
+        }
+        fetchFilteredData('/Districts', filter).then(response => {
             setDistricts(response);
         })
             .catch(error => {
@@ -170,11 +184,11 @@ const Activities = () => {
     };
 
     const handleEditActivity = (activity) => {
-        const parsedOpeningHours = activity.duration.split(' - ').map(time => {
-            const [hour] = time?.trim().split('h');
-            return `${hour}:00`;
-        });
+        const parsedOpeningHours = activity.duration.split(';')
         setEditingActivity(activity);
+        const province = provinces?.find(province => province?.id === activity?.provinceId);
+        setSubDistricts(province.districts);
+        setSubCommunes(activity ? province?.districts?.find(d => activity?.districtId === d.id)?.communes : []);
         setNewActivity({
             ...activity,
             duration: parsedOpeningHours
@@ -185,15 +199,15 @@ const Activities = () => {
         const province = provinces.find(p => p.id === parseInt(provinceId));
         if (province) {
             setSelectedProvince(province);
-            setDistricts(province.districts);
-            setCommunes([]); // Reset communes when province changes
+            setSubDistricts(province.districts);
+            setSubCommunes([]);
         }
     };
 
     const handleDistrictChange = (districtId) => {
         const district = districts.find(d => d.id === parseInt(districtId));
         if (district) {
-            setCommunes(district.communes);
+            setSubCommunes(district.communes);
         }
     };
 
@@ -210,12 +224,12 @@ const Activities = () => {
             ...prevState,
             [name]: type === 'checkbox' ? checked : value
         }));
-        
+
         if (name === 'provinceId') {
             handleProvinceChange(value);
         }
 
-        if(name === 'districtId') {
+        if (name === 'districtId') {
             handleDistrictChange(value);
         }
     };
@@ -237,7 +251,7 @@ const Activities = () => {
             try {
                 imageUrl = await uploadImage(formData, image);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 setLoading(false);
                 return;
             }
@@ -245,21 +259,7 @@ const Activities = () => {
 
         let durationString;
 
-        if (editingActivity) {
-            // Parse the time strings into Date objects
-            const openingHoursStart = new Date();
-            const openingHoursEnd = new Date();
-            const [startHour, startMinute] = newActivity.duration[0].split(':');
-            const [endHour, endMinute] = newActivity.duration[1].split(':');
-            openingHoursStart.setHours(startHour, startMinute);
-            openingHoursEnd.setHours(endHour, endMinute);
-
-            // Merge openingHours into a string
-            durationString = `${openingHoursStart.getHours()}h - ${openingHoursEnd.getHours()}h`;
-        } else {
-            // Merge openingHours into a string
-            durationString = `${newActivity.duration[0].getHours()}h - ${newActivity.duration[1].getHours()}h`;
-        }
+        durationString = newActivity.duration.join(';');
 
         const activityToSave = {
             ...newActivity,
@@ -299,7 +299,7 @@ const Activities = () => {
             setShowDeleteConfirm(false);
             setActivityToDelete(null);
         }).catch(error => {
-            setToasts([...toasts, { type: 'danger', message: error.message }]);
+            setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             setShowDeleteConfirm(false);
             setActivityToDelete(null);
         });
@@ -352,7 +352,7 @@ const Activities = () => {
             setImages(images.filter(image => image.id !== imageId));
             setToasts([...toasts, { type: 'success', message: 'Image deleted successfully!' }]);
         }).catch(error => {
-            setToasts([...toasts, { type: 'danger', message: error.message }]);
+            setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
         });
     };
 
@@ -376,7 +376,7 @@ const Activities = () => {
                 imageUrl = await uploadImage(formData, image);
                 setToasts([...toasts, { type: 'success', message: 'Image uploaded successfully!' }]);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 setLoading(false);
                 return;
             }
@@ -566,7 +566,7 @@ const Activities = () => {
                             <CFormSelect id="provinceId" name="provinceId" value={newActivity.provinceId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Province</option>
                                 {provinces.map(province => (
-                                    <option key={province.id} value={province.id}>{province.name}</option>
+                                    <option key={province.id} value={province.id} selected={editingActivity && editingActivity?.provinceId === province.id}>{province.name}</option>
                                 ))}
                             </CFormSelect>
                         </div>
@@ -575,8 +575,8 @@ const Activities = () => {
                             <CFormLabel htmlFor="districtId">District</CFormLabel>
                             <CFormSelect id="districtId" name="districtId" value={newActivity.districtId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select District</option>
-                                {districts.map(district => (
-                                    <option key={district.id} value={district.id}>{district.name}</option>
+                                {subDistricts && subDistricts?.length > 0 && subDistricts.map(district => (
+                                    <option key={district.id} value={district.id} selected={editingActivity && editingActivity?.districtId === district.id}>{district.name}</option>
                                 ))}
                             </CFormSelect>
                         </div>
@@ -585,8 +585,8 @@ const Activities = () => {
                             <CFormLabel htmlFor="communeId">Commune</CFormLabel>
                             <CFormSelect id="communeId" name="communeId" value={newActivity.communeId} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Commune</option>
-                                {communes.map(commune => (
-                                    <option key={commune.id} value={commune.id}>{commune.name}</option>
+                                {subCommunes && subCommunes?.length > 0 && subCommunes.map(commune => (
+                                    <option key={commune.id} value={commune.id} selected={editingActivity && editingActivity?.communeId === commune.id}>{commune.name}</option>
                                 ))}
                             </CFormSelect>
                         </div>

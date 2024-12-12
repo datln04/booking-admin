@@ -185,7 +185,7 @@ const ExperienceSetting = () => {
     //                 setRefresh(!refresh);
     //                 setToasts([...toasts, { type: 'success', message: 'Amenity updated successfully!' }]);
     //             }).catch(error => {
-    //                 setToasts([...toasts, { type: 'danger', message: error.message }]);
+    //                 setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
     //             });
     //         });
     //     }
@@ -214,7 +214,7 @@ const ExperienceSetting = () => {
                     setToasts([...toasts, { type: 'success', message: 'Amenity updated successfully!' }]);
                     // setRefresh(!refresh);
                 } catch (error) {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 } finally {
                 }
             } else if (newSetting?.additionalIds?.length < editingSetting?.additionalIds?.length) {
@@ -225,7 +225,7 @@ const ExperienceSetting = () => {
                         setRefresh(!refresh);
                         setToasts([...toasts, { type: 'success', message: 'Amenity updated successfully!' }]);
                     }).catch(error => {
-                        setToasts([...toasts, { type: 'danger', message: error.message }]);
+                        setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                     });
                 });
 
@@ -234,7 +234,7 @@ const ExperienceSetting = () => {
                     setToasts([...toasts, { type: 'success', message: 'Amenity updated successfully!' }]);
                     // setRefresh(!refresh);
                 } catch (error) {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 } finally {
                     // setLoading(false);
                     // handleClosePopup();
@@ -260,7 +260,7 @@ const ExperienceSetting = () => {
                     setToasts([...toasts, { type: 'success', message: 'Amenity updated successfully!' }]);
                     // setRefresh(!refresh);
                 } catch (error) {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 } finally {
                 }
             } else if (newSetting?.restrictionIds?.length < editingSetting?.restrictionIds?.length) {
@@ -271,7 +271,7 @@ const ExperienceSetting = () => {
                         setRefresh(!refresh);
                         setToasts([...toasts, { type: 'success', message: 'leisure activity updated successfully!' }]);
                     }).catch(error => {
-                        setToasts([...toasts, { type: 'danger', message: error.message }]);
+                        setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                     });
                 });
                 try {
@@ -279,7 +279,7 @@ const ExperienceSetting = () => {
                     setToasts([...toasts, { type: 'success', message: 'leisure activity updated successfully!' }]);
                     // setRefresh(!refresh);
                 } catch (error) {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 } finally {
                 }
             }
@@ -314,7 +314,7 @@ const ExperienceSetting = () => {
                 setToasts([...toasts, { type: 'success', message: 'Setting created successfully!' }]);
                 setRefresh(!refresh);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             } finally {
                 setLoading(false);
                 handleClosePopup();
@@ -335,7 +335,7 @@ const ExperienceSetting = () => {
                     setToasts([...toasts, { type: 'success', message: 'Leisure activity deleted successfully!' }]);
 
                 }).catch(error => {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 });
             });
 
@@ -345,7 +345,7 @@ const ExperienceSetting = () => {
                     setToasts([...toasts, { type: 'success', message: 'Leisure activity deleted successfully!' }]);
 
                 }).catch(error => {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 });
             });
 
@@ -354,7 +354,7 @@ const ExperienceSetting = () => {
                 setToasts([...toasts, { type: 'success', message: 'Dietary deleted successfully!' }]);
                 setRefresh(!refresh);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             } finally {
                 setLoading(false);
                 handleClosePopup();

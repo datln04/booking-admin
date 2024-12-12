@@ -109,7 +109,7 @@ const Amenity = () => {
             setShowDeleteConfirm(false);
             setAmenityToDelete(null);
         }).catch(error => {
-            setToasts([...toasts, { type: 'danger', message: error.message }]);
+            setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             setShowDeleteConfirm(false);
             setAmenityToDelete(null);
         });

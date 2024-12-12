@@ -1,0 +1,32 @@
+.table-responsive {
+    overflow-x: auto;
+  }
+  
+  .table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px; /* Adjust as needed */
+  }
+  
+  .table td:hover {
+    overflow: visible;
+    white-space: normal;
+    position: relative;
+  }
+  
+//   .table td:hover::after {
+//     content: attr(data-fulltext);
+//     position: absolute;
+//     background-color: #fff;
+//     border: 1px solid #ddd;
+//     padding: 5px;
+//     z-index: 1;
+//     white-space: normal;
+//     max-width: 300px; /* Adjust as needed */
+//     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+//   }

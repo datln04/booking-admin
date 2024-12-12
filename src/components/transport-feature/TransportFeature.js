@@ -133,7 +133,7 @@ const TransportFeatures = () => {
                     setToasts([...toasts, { type: 'success', message: 'Feature updated successfully!' }]);
                     setRefresh(!refresh);
                 } catch (error) {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 } finally {
                     setLoading(false);
                     setNewFeature(null);
@@ -147,7 +147,7 @@ const TransportFeatures = () => {
                         setRefresh(!refresh);
                         setToasts([...toasts, { type: 'success', message: 'Feature updated successfully!' }]);
                     }).catch(error => {
-                        setToasts([...toasts, { type: 'danger', message: error.message }]);
+                        setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                     });
                 });
 
@@ -156,7 +156,7 @@ const TransportFeatures = () => {
                     setToasts([...toasts, { type: 'success', message: 'Feature updated successfully!' }]);
                     setRefresh(!refresh);
                 } catch (error) {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 } finally {
                     setLoading(false);
                     handleClosePopup();
@@ -181,7 +181,7 @@ const TransportFeatures = () => {
                 setToasts([...toasts, { type: 'success', message: editingFeature ? 'Feature updated successfully!' : 'Feature created successfully!' }]);
                 setRefresh(!refresh);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             } finally {
                 setLoading(false);
                 handleClosePopup();
@@ -202,7 +202,7 @@ const TransportFeatures = () => {
                     setToasts([...toasts, { type: 'success', message: 'Feature deleted successfully!' }]);
 
                 }).catch(error => {
-                    setToasts([...toasts, { type: 'danger', message: error.message }]);
+                    setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
                 });
             });
 
@@ -211,7 +211,7 @@ const TransportFeatures = () => {
                 setToasts([...toasts, { type: 'success', message: 'Feature deleted successfully!' }]);
                 setRefresh(!refresh);
             } catch (error) {
-                setToasts([...toasts, { type: 'danger', message: error.message }]);
+                setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             } finally {
                 setLoading(false);
                 handleClosePopup();

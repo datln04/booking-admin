@@ -123,7 +123,7 @@ const Booking = () => {
             setShowDeleteConfirm(false);
             setBookingToDelete(null);
         }).catch(error => {
-            setToasts([...toasts, { type: 'danger', message: error.message }]);
+            setToasts([...toasts, { type: 'danger', message: 'Error or already in used' }]);
             setShowDeleteConfirm(false);
             setBookingToDelete(null);
         });
