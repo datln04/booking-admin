@@ -337,13 +337,11 @@ const Activities = () => {
 
     const handleAddImage = () => {
         setEditingImage(null);
-        // setNewImage({ id: 0, url: '', description: '' });
         setShowImageSubPopup(true);
     };
 
     const handleEditImage = (image) => {
         setEditingImage(image);
-        setNewImage(image);
         setShowImageSubPopup(true);
     };
 
@@ -358,10 +356,17 @@ const Activities = () => {
 
     const handleImageChange = (e) => {
         const { name, value } = e.target;
-        setNewImage(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+        if (editingImage) {
+            setEditingImage(prevState => ({
+                ...prevState,
+                [name]: value
+            }));
+        } else {
+            setNewImage(prevState => ({
+                ...prevState,
+                [name]: value
+            }));
+        }
     };
 
     const handleImageSubmit = async (e) => {
@@ -382,25 +387,30 @@ const Activities = () => {
             }
         }
 
-        const imageToSave = {
-            ...newImage,
-            imageUrl: imageUrl || newImage.imageUrl,
-        };
-
-
         if (editingImage) {
+            const imageToSave = {
+                ...editingImage,
+                imageUrl: imageUrl || editingImage.imageUrl,
+            };
             updateData(`/Images/${editingImage.id}`, imageToSave).then(() => {
                 setToasts([...toasts, { type: 'success', message: 'Image updated successfully!' }]);
+                handleImageSetup(editingImage?.serviceId);
                 setRefresh(!refresh);
             });
         } else {
+            const imageToSave = {
+                ...newImage,
+                imageUrl: imageUrl || newImage.imageUrl,
+            };
             createData('/Images', imageToSave).then(() => {
                 setToasts([...toasts, { type: 'success', message: 'Image created successfully!' }]);
+                handleImageSetup(newImage?.serviceId);
+
                 setRefresh(!refresh);
             });
         }
         setLoading(false);
-        handleClosePopup();
+        setShowImageSubPopup(false);
     };
 
     return (

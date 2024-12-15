@@ -92,6 +92,6 @@ export const PaymentStatus = {
 
 export const BookingStatus = {
     CONFIRMED: 'Confirmed',
-    PENDING: 'Pending',
+    CANCELLED: 'Canncelled',
     // Add other booking statuses here
 };

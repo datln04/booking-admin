@@ -195,7 +195,7 @@ const TransportService = () => {
             handleProvinceChange(value);
         }
 
-        if(name === 'districtId') {
+        if (name === 'districtId') {
             handleDistrictChange(value);
         }
     };
@@ -278,7 +278,6 @@ const TransportService = () => {
 
     const handleEditImage = (image) => {
         setEditingImage(image);
-        setNewImage(image);
         setShowImageSubPopup(true);
     };
 
@@ -293,10 +292,17 @@ const TransportService = () => {
 
     const handleImageChange = (e) => {
         const { name, value } = e.target;
-        setNewImage(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+        if (editingImage) {
+            setEditingImage(prevState => ({
+                ...prevState,
+                [name]: value
+            }));
+        } else {
+            setNewImage(prevState => ({
+                ...prevState,
+                [name]: value
+            }));
+        }
     };
 
     const handleImageSubmit = async (e) => {
@@ -317,26 +323,30 @@ const TransportService = () => {
             }
         }
 
-        const imageToSave = {
-            ...newImage,
-            imageUrl: imageUrl || newImage.imageUrl,
-        };
-
-
         if (editingImage) {
+            const imageToSave = {
+                ...editingImage,
+                imageUrl: imageUrl || editingImage.imageUrl,
+            };
             updateData(`/Images/${editingImage.id}`, imageToSave).then(() => {
                 setToasts([...toasts, { type: 'success', message: 'Image updated successfully!' }]);
+                handleImageSetup(editingImage?.serviceId);
                 setRefresh(!refresh);
             });
         } else {
+            const imageToSave = {
+                ...newImage,
+                imageUrl: imageUrl || newImage.imageUrl,
+            };
             createData('/Images', imageToSave).then(() => {
                 setToasts([...toasts, { type: 'success', message: 'Image created successfully!' }]);
+                handleImageSetup(newImage?.serviceId);
+
                 setRefresh(!refresh);
             });
         }
         setLoading(false);
         setShowImageSubPopup(false);
-        handleClosePopup();
     };
 
     const handleProvinceChange = (provinceId) => {
@@ -467,22 +477,26 @@ const TransportService = () => {
 
                         <div className="mb-3">
                             <CFormLabel htmlFor="make">Make</CFormLabel>
-                            <CFormSelect id="make" name="make" value={newService.make} onChange={handleChange} required disabled={loading}>
+                            {/* <CFormSelect id="make" name="make" value={newService.make} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Make</option>
                                 {VehicleData.map(vehicle => (
                                     <option key={vehicle.make} value={vehicle.make}>{vehicle.make}</option>
                                 ))}
-                            </CFormSelect>
+                            </CFormSelect> */}
+                            <CFormInput type="text" id="make" name="make" value={newService.make} onChange={handleChange} required disabled={loading} />
+
                         </div>
 
                         <div className="mb-3">
                             <CFormLabel htmlFor="model">Model</CFormLabel>
-                            <CFormSelect id="model" name="model" value={newService.model} onChange={handleChange} required disabled={loading}>
+                            {/* <CFormSelect id="model" name="model" value={newService.model} onChange={handleChange} required disabled={loading}>
                                 <option value="">Select Model</option>
                                 {VehicleData.find(vehicle => vehicle.make === newService.make)?.models.map(model => (
                                     <option key={model} value={model}>{model}</option>
                                 ))}
-                            </CFormSelect>
+                            </CFormSelect> */}
+                            <CFormInput type="text" id="model" name="model" value={newService.model} onChange={handleChange} required disabled={loading} />
+
                         </div>
 
                         <div className="mb-3">

@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { CButton, CCard, CCardBody, CCardHeader, CCol, CRow, CBadge, CModal, CModalHeader, CModalBody, CModalFooter, CForm, CFormLabel, CFormInput, CFormSelect, CFormCheck, CToast, CToastBody, CToastHeader, CToaster, CSpinner } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
 import moment from 'moment';
-import { cilDelete, cilPencil, cilTrash, cilUserFollow } from '@coreui/icons';
-// import './Booking.scss'; // Import the SCSS file
-import { createData, deleteData, fetchData, updateData } from '../../service/service';
+import { cilCheckCircle, cilDelete, cilPencil, cilTrash, cilUserFollow } from '@coreui/icons';
+import { createData, deleteData, fetchData, fetchFilteredData, updateData } from '../../service/service';
 import { BookingStatus, PaymentStatus, ServiceType } from '../../util/Enum';
 
 const getStatusBadge = (isDeleted) => {
@@ -36,6 +35,8 @@ const Booking = () => {
     const [loading, setLoading] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const [fetching, setFetching] = useState(false);
+    const [showApproveConfirm, setShowApproveConfirm] = useState(false);
+    const [bookingToApprove, setBookingToApprove] = useState(null);
 
     useEffect(() => {
         fetchBookings();
@@ -43,14 +44,26 @@ const Booking = () => {
 
     const fetchBookings = async () => {
         setFetching(true);
-        fetchData('/Bookings').then(response => {
+        const filter = {
+            // filters: [
+            //     {
+            //         field: "string",
+            //         operator: "string",
+            //         value: "string"
+            //     }
+            // ],
+            includes: [
+                "Customer"
+            ],
+        }
+        fetchFilteredData('/Bookings', filter).then(response => {
             setBookings(response);
             setFetching(false);
         })
-        .catch(error => {
-            console.error('There was an error fetching the bookings!', error);
-            setFetching(false);
-        });
+            .catch(error => {
+                console.error('There was an error fetching the bookings!', error);
+                setFetching(false);
+            });
     };
 
     const handleAddBooking = () => {
@@ -129,6 +142,39 @@ const Booking = () => {
         });
     };
 
+    const handleApproveBooking = (booking) => {
+        setBookingToApprove(booking);
+        setShowApproveConfirm(true);
+    };
+
+    const confirmApproveBooking = () => {
+        const payload = {
+            id: bookingToApprove.id,
+            customerId: bookingToApprove.customerId,
+            serviceType: bookingToApprove.serviceType,
+            serviceId: bookingToApprove.serviceId,
+            bookingDate: bookingToApprove.bookingDate,
+            price: bookingToApprove.price,
+            paymentStatus: bookingToApprove.paymentStatus,
+            bookingStatus: 'Approved',
+            checkInDate: bookingToApprove.checkInDate,
+            checkOutDate: bookingToApprove.checkOutDate,
+            isDeleted: false
+        };
+        createData('/Bookings', payload).then((res) => {
+            if (res) {
+                setRefresh(!refresh);
+                setToasts([...toasts, { type: 'success', message: 'Booking approved successfully!' }]);
+            }
+            setShowApproveConfirm(false);
+            setBookingToApprove(null);
+        }).catch(error => {
+            setToasts([...toasts, { type: 'danger', message: 'Error approving booking' }]);
+            setShowApproveConfirm(false);
+            setBookingToApprove(null);
+        });
+    };
+
     return (
         <CRow>
             <CToaster position="top-center">
@@ -143,11 +189,6 @@ const Booking = () => {
             </CToaster>
             <CCol>
                 <CCard>
-                    {/* <CCardHeader>
-                        <CButton color="primary" onClick={handleAddBooking}>
-                            <CIcon icon={cilUserFollow} /> Add Booking
-                        </CButton>
-                    </CCardHeader> */}
                     <CCardBody>
                         {fetching ? (
                             <div className="text-center">
@@ -158,24 +199,24 @@ const Booking = () => {
                                 <thead>
                                     <tr>
                                         <th>Booking ID</th>
-                                        <th>Customer ID</th>
+                                        <th>Customer</th>
                                         <th>Service Type</th>
-                                        <th>Service ID</th>
+                                        {/* <th>Service ID</th> */}
                                         <th>Booking Date</th>
                                         <th>Price</th>
                                         <th>Payment Status</th>
                                         <th>Booking Status</th>
                                         <th>Status</th>
-                                        <th style={{ width: '130px' }}>Actions</th>
+                                        {/* <th style={{ width: '130px' }}>Actions</th> */}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {bookings.map(booking => (
                                         <tr key={booking.id}>
                                             <td>{booking.id}</td>
-                                            <td>{booking.customerId}</td>
+                                            <td>{booking.customer.fullName}</td>
                                             <td>{booking.serviceType}</td>
-                                            <td>{booking.serviceId}</td>
+                                            {/* <td>{booking.serviceId}</td> */}
                                             <td>{moment(booking.bookingDate).format('YYYY-MM-DD HH:mm:ss')}</td>
                                             <td>{booking.price}</td>
                                             <td>{booking.paymentStatus}</td>
@@ -185,14 +226,19 @@ const Booking = () => {
                                                     {getStatusText(booking.isDeleted)}
                                                 </CBadge>
                                             </td>
-                                            <td>
-                                                <CButton className='button' color="info" size="sm" onClick={() => handleEditBooking(booking)}>
+                                            {/* <td> */}
+                                                {/* {booking.bookingStatus === 'Pending' && (
+                                                    <CButton color="success" size="sm" onClick={() => handleApproveBooking(booking)}>
+                                                        <CIcon icon={cilCheckCircle} />
+                                                    </CButton>
+                                                )} */}
+                                                {/* <CButton className='button mx-1' color="info" size="sm" onClick={() => handleEditBooking(booking)}>
                                                     <CIcon icon={cilPencil} />
-                                                </CButton>
-                                                <CButton color="danger" size="sm" onClick={() => handleDeleteBooking(booking.id)}>
+                                                </CButton> */}
+                                                {/* <CButton color="danger" size="sm" onClick={() => handleDeleteBooking(booking.id)}>
                                                     <CIcon icon={cilTrash} />
-                                                </CButton>
-                                            </td>
+                                                </CButton> */}
+                                            {/* </td> */}
                                         </tr>
                                     ))}
                                 </tbody>
@@ -259,6 +305,17 @@ const Booking = () => {
                 <CModalFooter>
                     <CButton color="danger" onClick={confirmDeleteBooking}>Delete</CButton>
                     <CButton color="secondary" onClick={() => setShowDeleteConfirm(false)}>Cancel</CButton>
+                </CModalFooter>
+            </CModal>
+
+            <CModal visible={showApproveConfirm} onClose={() => setShowApproveConfirm(false)}>
+                <CModalHeader closeButton>Confirm Approval</CModalHeader>
+                <CModalBody>
+                    Are you sure you want to approve this booking?
+                </CModalBody>
+                <CModalFooter>
+                    <CButton color="success" onClick={confirmApproveBooking}>Approve</CButton>
+                    <CButton color="secondary" onClick={() => setShowApproveConfirm(false)}>Cancel</CButton>
                 </CModalFooter>
             </CModal>
         </CRow>

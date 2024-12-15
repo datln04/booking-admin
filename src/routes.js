@@ -28,6 +28,7 @@ const AdditionalInformation = React.lazy(() => import('./components/additional/A
 const routes = [
   { path: '/', exact: true, name: 'Home', roles: [UserRole.ADMINISTRATOR] },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard, roles: [UserRole.ADMINISTRATOR] },
+  { path: '/booking-management', name: 'Booking', element: Booking, roles: [UserRole.ADMINISTRATOR] },
   { path: '/user-management', name: 'User', element: User, roles: [UserRole.ADMINISTRATOR] },
   { path: '/booking-management', name: 'Booking', element: Booking, roles: [UserRole.ADMINISTRATOR] },
   // hotel
