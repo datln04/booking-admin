@@ -62,7 +62,7 @@ const _nav = [
       },
       {
         component: CNavItem,
-        name: 'Hotel Amanties',
+        name: 'Hotel Amenities',
         to: '/hotel-amenities',
       },
       {
@@ -146,7 +146,7 @@ const _nav = [
       },
       {
         component: CNavItem,
-        name: 'Restaurant Dietarie Options',
+        name: 'Restaurant Dietaries Options',
         to: '/restaurant-dietaries',
       },
       {
@@ -161,7 +161,7 @@ const _nav = [
       },
       {
         component: CNavItem,
-        name: 'Cusines',
+        name: 'Cuisines',
         to: '/cusines',
       },
     ]

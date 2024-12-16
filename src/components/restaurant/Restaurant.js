@@ -194,10 +194,8 @@ const Restaurant = () => {
     };
 
     const handleEditRestaurant = (restaurant) => {
-        const parsedOpeningHours = restaurant.openingHours.split(' - ').map(time => {
-            const [hour] = time?.trim().split('h');
-            return `${hour}:00`;
-        });
+        const parsedOpeningHours = restaurant.openingHours.split(';')
+
 
         const province = provinces?.find(province => province?.id === restaurant?.provinceId);
         setEditingRestaurant(restaurant);
@@ -242,14 +240,14 @@ const Restaurant = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        let openingHoursString;
-        // Parse the time strings into Date objects
-        const openingHoursStart = new Date();
-        const openingHoursEnd = new Date();
-        const [startHour, startMinute] = newRestaurant.openingHours[0].split(':');
-        const [endHour, endMinute] = newRestaurant.openingHours[1].split(':');
-        openingHoursStart.setHours(startHour, startMinute);
-        openingHoursEnd.setHours(endHour, endMinute);
+        // let openingHoursString;
+        // // Parse the time strings into Date objects
+        // const openingHoursStart = new Date();
+        // const openingHoursEnd = new Date();
+        // const [startHour, startMinute] = newRestaurant.openingHours[0].split(':');
+        // const [endHour, endMinute] = newRestaurant.openingHours[1].split(':');
+        // openingHoursStart.setHours(startHour, startMinute);
+        // openingHoursEnd.setHours(endHour, endMinute);
         // if (editingRestaurant) {
         //     // Merge openingHours into a string
         //     openingHoursString = `${openingHoursStart.getHours()}h - ${openingHoursEnd.getHours()}h`;
@@ -257,12 +255,12 @@ const Restaurant = () => {
         //     // Merge openingHours into a string
         //     openingHoursString = `${newRestaurant.openingHours[0].getHours()}h - ${newRestaurant.openingHours[1].getHours()}h`;
         // }
-        openingHoursString = `${openingHoursStart.getHours()}h - ${openingHoursEnd.getHours()}h`;
+        // openingHoursString = `${openingHoursStart.getHours()}h - ${openingHoursEnd.getHours()}h`;
 
 
         const restaurantToSave = {
             ...newRestaurant,
-            openingHours: openingHoursString
+            openingHours: newRestaurant.openingHours.join(';')
         };
 
         setLoading(false);

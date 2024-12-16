@@ -408,10 +408,10 @@ const TransportService = () => {
                                             <th>Mileage</th>
                                             <th>Location</th>
                                             <th>License Plate</th>
-                                            <th>Status</th>
                                             <th>Province</th>
                                             <th>District</th>
                                             <th>Commune</th>
+                                            <th>Status</th>
                                             <th style={{ width: '13%' }}>Actions</th>
                                         </tr>
                                     </thead>

@@ -308,9 +308,9 @@ const Hotel = () => {
                                             <th>Email</th>
                                             <th>Description</th>
                                             <th>Star Rating</th>
-                                            <th>Province</th>
+                                            {/* <th>Province</th>
                                             <th>District</th>
-                                            <th>Commune</th>
+                                            <th>Commune</th> */}
                                             <th>Status</th>
                                             <th style={{ width: '200px' }}>Actions</th>
                                         </tr>
@@ -328,7 +328,7 @@ const Hotel = () => {
                                             <td data-fulltext={hotel.email}>{hotel.email}</td>
                                             <td data-fulltext={hotel.description}>{hotel.description}</td>
                                             <td data-fulltext={hotel.starRating}>{hotel.starRating}</td>
-                                            <td data-fulltext={provinces.find(province => province.id === hotel.provinceId)?.name || 'N/A'}>
+                                            {/* <td data-fulltext={provinces.find(province => province.id === hotel.provinceId)?.name || 'N/A'}>
                                                 {provinces.find(province => province.id === hotel.provinceId)?.name || 'N/A'}
                                             </td>
                                             <td data-fulltext={districts.find(district => district.id === hotel.districtId)?.name || 'N/A'}>
@@ -336,7 +336,7 @@ const Hotel = () => {
                                             </td>
                                             <td data-fulltext={communes.find(commune => commune.id === hotel.communeId)?.name || 'N/A'}>
                                                 {communes.find(commune => commune.id === hotel.communeId)?.name || 'N/A'}
-                                            </td>
+                                            </td> */}
                                                 <td>
                                                     <CBadge color={getStatusBadge(hotel.isDeleted)}>
                                                         {getStatusText(hotel.isDeleted)}
